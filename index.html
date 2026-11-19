@@ -108,6 +108,7 @@ input[type=color]{padding:2px;height:36px}
           <div><label>📏 필요한 키</label><select id="level"></select></div>
           <div><label>👨‍👩‍👧 필요한 세대</label><select id="gen"></select></div>
         </div>
+        <label id="hoodRow" class="hide" style="display:flex;align-items:center;gap:8px;font-weight:700;color:#2a4a80"><input type="checkbox" id="hood" style="width:auto"> 🐸 머리까지 덮는 옷 (입으면 모자 · 네일을 숨겨요)</label>
         <label>📅 한정 판매 (고르면 그 달에만 상점에 나와요 · 안 고르면 항상)</label>
         <div class="months" id="months"></div>
         <div class="shopprev"><span>상점에서 보이는 모습 →</span><canvas id="cellCv" width="138" height="108"></canvas></div>
@@ -224,6 +225,7 @@ function fillSubs(slot, cur) {
   $("dropBox").classList.toggle("hide", !!pat);
   if (pat) $("pattern").innerHTML = pat.map((p) => '<option value="' + p + '">' + PATTERN_NAMES[p] + "</option>").join("");
   $("nudgeBox").classList.toggle("hide", !(SLOTS[slot] && SLOTS[slot].wear));
+  $("hoodRow").classList.toggle("hide", slot !== "body");
   $("prevNote").textContent = SLOTS[slot] && SLOTS[slot].wear ? "화살표로 하이 머리에 딱 맞게 옮겨요" : "방에 놓았을 때 모습이에요";
   const m = SLOTS[slot] && SLOTS[slot].max;
   $("sizeHint").textContent = m ? "투명 배경 픽셀 그림 · 최대 " + m[0] + "×" + m[1] : "";
@@ -283,7 +285,7 @@ function openItem(kind, id) {
   $("empty").classList.add("hide"); $("editor").classList.remove("hide"); say("");
   if (kind === "custom") {
     const d = custom[id];
-    form = { kind, id, name: d.name, slot: d.slot, sub: d.sub, price: d.price, level: d.level || 1, gen: d.gen || 1, season: d.season || [], png: d.png || null, x: d.x || 0, y: d.y || 0, colors: d.colors || null, hidden: !!d.hidden };
+    form = { kind, id, hood: !!d.hidesHead, name: d.name, slot: d.slot, sub: d.sub, price: d.price, level: d.level || 1, gen: d.gen || 1, season: d.season || [], png: d.png || null, x: d.x || 0, y: d.y || 0, colors: d.colors || null, hidden: !!d.hidden };
   } else {
     const it = baseItems().find((x) => x.id === id), o = overrides[id] || {};
     form = { kind, id, name: it.name, slot: it.slot, price: o.price != null ? o.price : it.price, level: o.level != null ? o.level : it.level, gen: o.gen != null ? o.gen : (it.gen || 1),
@@ -309,6 +311,8 @@ function showForm() {
     const c = form.colors || { wall: "#fff4e0", floor: "#e8c39e", line: "#ffd3e3", pattern: SLOTS[form.slot].pattern[0] };
     $("pattern").value = c.pattern; $("c1").value = c.wall || c.floor; $("c2").value = c.line;
   }
+  $("hood").checked = !!form.hood;
+  if (base) $("hoodRow").classList.add("hide");
   $("price").value = form.price; $("level").value = form.level; $("gen").value = form.gen || 1;
   [...$("months").children].forEach((s) => s.classList.toggle("on", (form.season || []).includes(+s.dataset.m)));
   $("saveBtn").textContent = base ? "💾 바꾼 값 저장" : "🛍 상점에 올리기";
@@ -358,7 +362,8 @@ function takeFile(f) {
       // 깔끔하게 PNG로 다시 저장
       const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; c.getContext("2d").drawImage(im, 0, 0);
       form.png = c.toDataURL("image/png");
-      if (form.isNew && SLOTS[form.slot].wear) { form.x = Math.round((64 - im.width) / 2); form.y = form.slot === "head" ? 2 : form.slot === "face" ? 24 : 34; }
+      if (SLOTS[form.slot].wear && im.width === 64 && im.height === 64) { form.x = 0; form.y = 0; } // 하이 원본 크기로 그린 옷은 딱 겹치게
+      else if (form.isNew && SLOTS[form.slot].wear) { form.x = Math.round((64 - im.width) / 2); form.y = form.slot === "head" ? 2 : form.slot === "face" ? 24 : 34; }
       upImg = im; say(""); drawPreview();
     };
     im.src = r.result;
@@ -414,8 +419,10 @@ async function saveCustom(extra) {
   if (!form.name) return say("이름을 써 주세요");
   if (!S.pattern && !form.png) return say("그림을 올려 주세요");
   const doc = { name: form.name, slot: form.slot, sub: form.sub || (S.subs ? S.subs[0] : ""), price: form.price, level: form.level, gen: form.gen, season: form.season,
-    hidden: !!form.hidden, deleted: false, updatedAt: Date.now() };
+    hidden: !!form.hidden, deleted: false, updatedAt: Date.now(),
+    createdAt: (custom[form.id] && custom[form.id].createdAt) || Date.now() }; // 처음 올린 시각 → 게임 상점에 하루 동안 NEW
   if (S.pattern) doc.colors = form.colors; else { doc.png = form.png; doc.x = form.x; doc.y = form.y; }
+  doc.hidesHead = form.slot === "body" && $("hood").checked;
   Object.assign(doc, extra || {});
   try {
     await db.collection("shopItems").doc(form.id).set(doc);
