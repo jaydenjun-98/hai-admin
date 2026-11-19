@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>하이 키우기 · 관리자</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#eef6ff;color:#2a4a80}
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:#fff;border-bottom:3px solid #2a4a80;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+header .sub{font-size:13px;color:#7a8db3}
+#login{margin-left:auto}
+.badge{font-size:13px;border-radius:8px;padding:5px 10px;border:2px solid #2f9e6e;background:#dff7e9;color:#2f7e4e}
+.badge.warn{border-color:#e0457b;background:#ffe8ef;color:#c0305a}
+button{font-family:inherit;cursor:pointer}
+.btn{padding:7px 12px;border:2px solid #2a4a80;border-radius:8px;background:#fff;font-weight:700;color:#2a4a80}
+main{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px 20px;align-items:start}
+.card{background:#fff;border:3px solid #2a4a80;border-radius:10px;padding:14px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tab{padding:6px 10px;border:2px solid #2a4a80;border-radius:8px;font-size:13px;font-weight:700;background:#fff;color:#2a4a80}
+.tab.on{background:#ffe8a3}
+#search{width:100%;margin-bottom:8px}
+#list{max-height:62vh;overflow:auto}
+.row{display:flex;align-items:center;gap:10px;padding:6px;border-radius:8px;font-size:13px;border:2px solid transparent;cursor:pointer}
+.row:hover{background:#f6fbff}
+.row.sel{border-color:#e0457b;background:#fff0f5}
+.row canvas{background:#f6f0e0;border-radius:6px;flex:none}
+.row .meta{flex:1;min-width:0}.row .meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row small{color:#7a8db3}
+.st{font-size:11px;padding:2px 6px;border-radius:6px;font-weight:700;white-space:nowrap}
+.s-on{background:#dff7e9;color:#2f7e4e}.s-off{background:#eee;color:#999}.s-ovr{background:#fff0c2;color:#a8701a}
+.newbtn{margin-top:10px;width:100%;padding:8px;border:2px dashed #2a4a80;border-radius:8px;background:#f6fbff;font-weight:700;color:#2a4a80}
+.editor{display:grid;grid-template-columns:300px 1fr;gap:16px}
+.drop{border:3px dashed #7a8db3;border-radius:10px;min-height:84px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:#7a8db3;background:#f6fbff;padding:8px;text-align:center}
+.drop.over{background:#e6f3ff;border-color:#2a4a80}
+.prev{background:linear-gradient(#fff4e0,#ffe2b8);border:3px solid #2a4a80;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:8px;margin-top:10px}
+.prev canvas{image-rendering:pixelated}
+.nudge{display:grid;grid-template-columns:repeat(3,34px);gap:4px;justify-content:center;margin-top:8px}
+.nudge button{height:30px;border:2px solid #2a4a80;border-radius:6px;background:#fff;font-weight:700}
+.nudge span{font-size:11px;text-align:center;align-self:center}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 4px;color:#5a6a8a}
+input,select{width:100%;padding:7px 8px;border:2px solid #b8c4d8;border-radius:8px;font-size:14px;font-family:inherit;color:#2a4a80;background:#fff}
+input[type=color]{padding:2px;height:36px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.months{display:flex;flex-wrap:wrap;gap:4px}
+.months span{width:38px;text-align:center;padding:4px 0;border:2px solid #b8c4d8;border-radius:6px;font-size:12px;cursor:pointer;user-select:none}
+.months span.on{background:#ffe0ec;border-color:#e0457b;color:#c0305a;font-weight:700}
+.btns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.btns button{flex:1;padding:10px;border:3px solid #2a4a80;border-radius:10px;font-weight:800;font-size:14px;min-width:110px}
+.b1{background:#ffe8a3}.b2{background:#fff}.b3{background:#ffe3e3}
+.note{font-size:12px;color:#7a8db3;margin-top:6px}
+.msg{margin-top:10px;font-weight:700;color:#e0457b;min-height:18px}
+.shopprev{margin-top:12px;display:flex;align-items:center;gap:10px;font-size:12px;color:#7a8db3}
+#setup{display:none;margin:16px 20px 0;padding:14px;border:3px solid #e0457b;border-radius:10px;background:#fff}
+#setup pre{background:#f6f0e0;padding:10px;border-radius:8px;white-space:pre-wrap;font-size:12px}
+.hide{display:none!important}
+.orig{font-size:12px;color:#7a8db3;margin-top:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌱 하이 키우기 · 관리자</h1>
+  <span class="sub">상점 아이템 추가 · 수정 (저장하면 게임 상점에 바로 나와요 · 배포 필요 없음)</span>
+  <span id="login"><button class="btn" id="loginBtn">G 구글로 로그인</button></span>
+</header>
+
+<div id="setup">
+  <b>👑 처음 한 번만: 관리자 계정 등록</b>
+  <p style="font-size:13px">지금 로그인한 계정이 아직 관리자로 등록되지 않았어요. Firebase 콘솔 → Firestore → 규칙에서 <b>wordRooms 규칙 바로 아래</b>에 이걸 붙여넣고 게시해 주세요.</p>
+  <pre id="rulesText"></pre>
+  <button class="btn" id="copyRules">규칙 복사하기</button>
+</div>
+
+<main>
+  <section class="card">
+    <div class="tabs"><button class="tab on" data-tab="custom">✨ 새로 만든 아이템</button><button class="tab" data-tab="base">🛍 기존 아이템 수정</button></div>
+    <input id="search" placeholder="이름으로 찾기">
+    <div id="list"></div>
+    <button class="newbtn" id="newBtn">＋ 새 아이템 만들기</button>
+  </section>
+
+  <section class="card">
+    <div id="empty" class="note" style="font-size:15px">왼쪽에서 아이템을 고르거나 ＋ 새 아이템 만들기를 눌러요.</div>
+    <div id="editor" class="editor hide">
+      <div>
+        <div id="dropBox" class="drop"><canvas id="upCv" width="1" height="1"></canvas><div>📁 그림(PNG) 끌어다 놓기 · 눌러서 고르기<br><small id="sizeHint">투명 배경 픽셀 그림</small></div></div>
+        <input type="file" id="file" accept="image/png,image/gif" class="hide">
+        <div id="patternBox" class="hide">
+          <label>무늬</label><select id="pattern"></select>
+          <div class="two"><div><label>바탕 색</label><input type="color" id="c1"></div><div><label>무늬 색</label><input type="color" id="c2"></div></div>
+        </div>
+        <div class="prev"><canvas id="prevCv" width="256" height="256"></canvas>
+          <div id="nudgeBox" class="nudge"><span></span><button data-d="0,-1">▲</button><span></span><button data-d="-1,0">◀</button><span id="pos">x 0<br>y 0</span><button data-d="1,0">▶</button><span></span><button data-d="0,1">▼</button><span></span></div>
+          <div id="prevNote" class="note">화살표로 하이 머리에 딱 맞게 옮겨요</div>
+        </div>
+      </div>
+      <div>
+        <label>이름</label><input id="name" maxlength="16">
+        <div class="two">
+          <div><label>종류</label><select id="slot"></select></div>
+          <div><label>상점 칸</label><select id="sub"></select></div>
+        </div>
+        <div class="three">
+          <div><label>💰 가격 (코인)</label><input id="price" type="number" min="0" step="10"></div>
+          <div><label>📏 필요한 키</label><select id="level"></select></div>
+          <div><label>👨‍👩‍👧 필요한 세대</label><select id="gen"></select></div>
+        </div>
+        <label>📅 한정 판매 (고르면 그 달에만 상점에 나와요 · 안 고르면 항상)</label>
+        <div class="months" id="months"></div>
+        <div class="shopprev"><span>상점에서 보이는 모습 →</span><canvas id="cellCv" width="138" height="108"></canvas></div>
+        <div id="origBox" class="orig hide"></div>
+        <div class="btns">
+          <button class="b1" id="saveBtn">🛍 상점에 올리기</button>
+          <button class="b2" id="hideBtn">🙈 숨기기</button>
+          <button class="b3" id="delBtn">🗑 삭제</button>
+        </div>
+        <div class="note" id="btnNote">※ 이미 산 사람은 숨기거나 삭제해도 '내 아이템'에 그대로 남아요</div>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ---------- 설정 ----------
+const GAME_URL = (location.protocol === "file:" || location.hostname === "localhost") ? "../hai-kiugi/" : "https://haifi-room.netlify.app/";
+const FB_VER = "10.14.1";
+const firebaseConfig = {
+  apiKey: "AIzaSyBegEmP9mGE9Q8sDscJ2SvYW6RkylssPl8",
+  authDomain: "haifi-room.firebaseapp.com",
+  projectId: "haifi-room",
+  storageBucket: "haifi-room.firebasestorage.app",
+  messagingSenderId: "243660189970",
+  appId: "1:243660189970:web:b3c61cb9db8642b66703cb",
+};
+const HEIGHT_STEPS = { 1: 50, 2: 52, 3: 55, 4: 58, 5: 62, 6: 67, 7: 73, 8: 80, 9: 88, 10: 100 };
+const SLOTS = {
+  head: { name: "👒 모자 (머리)", wear: true, tab: "옷", max: [64, 64] },
+  face: { name: "😎 얼굴 (안경 · 볼터치)", wear: true, tab: "옷", max: [64, 64] },
+  body: { name: "👕 몸 (옷)", wear: true, tab: "옷", max: [64, 64] },
+  floor: { name: "🛋 바닥 가구", tab: "가구", max: [80, 64], subs: ["furni", "doll", "pet"] },
+  wall: { name: "🖼 벽 장식", tab: "가구", max: [40, 32], subs: ["furni", "frame"] },
+  rug: { name: "🟣 러그", tab: "가구", max: [90, 16], subs: ["rug"] },
+  sticker: { name: "⭐ 스티커", tab: "가구", max: [24, 24], subs: ["sticker"] },
+  wallpaper: { name: "🧱 벽지 (색 · 무늬)", tab: "가구", pattern: ["stripe", "dots", "check", "hearts", "stars", "polka", "cloud", "rainbow", "berry", "snowflake"], subs: ["wallpaper"] },
+  floorTile: { name: "🟫 바닥 (색 · 무늬)", tab: "가구", pattern: ["wood", "checker", "tile"], subs: ["floor"] },
+};
+const SUB_NAMES = { furni: "가구", doll: "인형", pet: "동물", frame: "액자", rug: "러그", sticker: "스티커", wallpaper: "벽지", floor: "바닥" };
+const PATTERN_NAMES = { stripe: "줄무늬", dots: "물방울", check: "체크", hearts: "하트", stars: "별", polka: "큰 땡땡이", cloud: "구름", rainbow: "무지개 줄무늬", berry: "딸기", snowflake: "눈송이", wood: "원목", checker: "체크무늬", tile: "타일" };
+const $ = (id) => document.getElementById(id);
+const px = (c) => { const g = c.getContext("2d"); g.imageSmoothingEnabled = false; return g; };
+
+let db, auth, user = null, isAdmin = false;
+let tab = "custom", custom = {}, overrides = {}, sel = null; // sel: { kind: "custom"|"base", id, data }
+
+function loadScript(src) {
+  return new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => fail(new Error(src)); document.head.appendChild(s); });
+}
+function say(t, ok) { $("msg").textContent = t; $("msg").style.color = ok ? "#2f9e6e" : "#e0457b"; }
+
+// ---------- 시작 ----------
+(async function boot() {
+  const fb = "https://www.gstatic.com/firebasejs/" + FB_VER + "/";
+  try {
+    await loadScript(fb + "firebase-app-compat.js");
+    await loadScript(fb + "firebase-auth-compat.js");
+    await loadScript(fb + "firebase-firestore-compat.js");
+    for (const f of ["sprites.js", "item-art.js", "items.js", "room-art.js"]) await loadScript(GAME_URL + "js/" + f);
+  } catch (e) { $("empty").textContent = "필요한 파일을 못 받았어요: " + e.message; return; }
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth(); db = firebase.firestore();
+  fillSelects();
+  auth.onAuthStateChanged(async (u) => { user = u && !u.isAnonymous ? u : null; await afterLogin(); });
+  $("loginBtn").onclick = doLogin;
+  await loadData();
+})();
+
+async function afterLogin() {
+  if (!user) { $("login").innerHTML = '<button class="btn" id="loginBtn">G 구글로 로그인</button>'; $("loginBtn").onclick = doLogin; return; }
+  // 관리자인지: 쓰기 시험 (테스트 문서)
+  try { await db.collection("shopOverrides").doc("_ping").set({ at: Date.now(), by: user.uid }); isAdmin = true; } catch (e) { isAdmin = false; }
+  $("login").innerHTML = isAdmin
+    ? '<span class="badge">✓ ' + (user.displayName || user.email) + ' · 관리자</span>'
+    : '<span class="badge warn">⚠ ' + (user.email || "") + ' · 아직 관리자 아님</span>';
+  $("setup").style.display = isAdmin ? "none" : "block";
+  $("rulesText").textContent = rulesFor(user.uid);
+}
+function doLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => alert("로그인 실패: " + e.code)); }
+function rulesFor(uid) {
+  return "    // 🛍 관리자 상점 (누구나 읽기 · 관리자만 쓰기)\n" +
+    "    match /shopItems/{id} {\n      allow read: if true;\n      allow write: if request.auth != null && request.auth.uid == \"" + uid + "\";\n    }\n" +
+    "    match /shopOverrides/{id} {\n      allow read: if true;\n      allow write: if request.auth != null && request.auth.uid == \"" + uid + "\";\n    }";
+}
+$("copyRules").onclick = () => navigator.clipboard.writeText($("rulesText").textContent).then(() => alert("복사했어요!"));
+
+async function loadData() {
+  try {
+    const [a, b] = await Promise.all([db.collection("shopItems").get(), db.collection("shopOverrides").get()]);
+    custom = {}; overrides = {};
+    a.docs.forEach((d) => { custom[d.id] = d.data(); });
+    b.docs.forEach((d) => { if (d.id !== "_ping") overrides[d.id] = d.data(); });
+  } catch (e) { say("목록을 못 불러왔어요 (규칙을 확인해 주세요)"); }
+  renderList();
+}
+
+// ---------- 선택 상자 채우기 ----------
+function fillSelects() {
+  $("slot").innerHTML = Object.keys(SLOTS).map((k) => '<option value="' + k + '">' + SLOTS[k].name + "</option>").join("");
+  $("level").innerHTML = Object.keys(HEIGHT_STEPS).map((l) => '<option value="' + l + '">' + HEIGHT_STEPS[l] + "cm부터</option>").join("");
+  $("gen").innerHTML = [1, 2, 3, 4, 5].map((g) => '<option value="' + g + '">' + (g === 1 ? "누구나 (1대)" : g + "대 하이부터") + "</option>").join("");
+  $("months").innerHTML = Array.from({ length: 12 }, (_, i) => '<span data-m="' + (i + 1) + '">' + (i + 1) + "월</span>").join("");
+  $("months").onclick = (e) => { const m = e.target.dataset.m; if (!m) return; e.target.classList.toggle("on"); readForm(); };
+}
+function fillSubs(slot, cur) {
+  const subs = (SLOTS[slot] && SLOTS[slot].subs) || [];
+  $("sub").innerHTML = subs.length ? subs.map((s) => '<option value="' + s + '">' + SUB_NAMES[s] + "</option>").join("") : '<option value="">' + ((SLOTS[slot] || {}).tab || "") + "</option>";
+  $("sub").disabled = subs.length <= 1;
+  if (cur && subs.includes(cur)) $("sub").value = cur;
+  const pat = SLOTS[slot] && SLOTS[slot].pattern;
+  $("patternBox").classList.toggle("hide", !pat);
+  $("dropBox").classList.toggle("hide", !!pat);
+  if (pat) $("pattern").innerHTML = pat.map((p) => '<option value="' + p + '">' + PATTERN_NAMES[p] + "</option>").join("");
+  $("nudgeBox").classList.toggle("hide", !(SLOTS[slot] && SLOTS[slot].wear));
+  $("prevNote").textContent = SLOTS[slot] && SLOTS[slot].wear ? "화살표로 하이 머리에 딱 맞게 옮겨요" : "방에 놓았을 때 모습이에요";
+  const m = SLOTS[slot] && SLOTS[slot].max;
+  $("sizeHint").textContent = m ? "투명 배경 픽셀 그림 · 최대 " + m[0] + "×" + m[1] : "";
+}
+
+// ---------- 목록 ----------
+document.querySelectorAll(".tab").forEach((b) => (b.onclick = () => {
+  tab = b.dataset.tab; document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === b));
+  $("newBtn").classList.toggle("hide", tab !== "custom"); renderList();
+}));
+$("search").oninput = renderList;
+function baseItems() { return (typeof ITEMS !== "undefined" ? ITEMS : []).filter((it) => it.price > 0 && it.slot !== "consumable"); }
+function renderList() {
+  const q = $("search").value.trim();
+  let rows = [];
+  if (tab === "custom") {
+    rows = Object.keys(custom).filter((id) => !custom[id].deleted).map((id) => ({ kind: "custom", id, d: custom[id] }))
+      .sort((a, b) => (b.d.updatedAt || 0) - (a.d.updatedAt || 0));
+  } else {
+    rows = baseItems().map((it) => ({ kind: "base", id: it.id, d: it }));
+  }
+  if (q) rows = rows.filter((r) => (r.d.name || "").includes(q));
+  $("list").innerHTML = rows.map((r, i) => {
+    const o = r.kind === "base" ? overrides[r.id] : null;
+    const d = o ? Object.assign({}, r.d, o) : r.d;
+    const st = r.kind === "custom" ? (d.hidden ? '<span class="st s-off">숨김</span>' : '<span class="st s-on">판매 중</span>') : (o ? '<span class="st s-ovr">수정됨</span>' : "");
+    const g = (d.gen || 1) > 1 ? " · " + d.gen + "대부터" : "";
+    return '<div class="row' + (sel && sel.id === r.id ? " sel" : "") + '" data-i="' + i + '"><canvas width="40" height="40"></canvas><div class="meta"><b>' + (d.name || "(이름 없음)") +
+      "</b><small>💰" + (d.price || 0) + " · 📏" + HEIGHT_STEPS[d.level || 1] + "cm" + g + (d.hidden && r.kind === "base" ? " · 숨김" : "") + "</small></div>" + st + "</div>";
+  }).join("") || '<div class="note">아직 없어요</div>';
+  [...$("list").children].forEach((el) => {
+    const r = rows[+el.dataset.i]; if (!r) return;
+    drawIcon(el.querySelector("canvas"), r);
+    el.onclick = () => openItem(r.kind, r.id);
+  });
+}
+function iconOf(r) {
+  if (r.kind === "custom") return r.d._img || null;
+  const it = r.d;
+  if (typeof ITEM_SPRITES !== "undefined" && ITEM_SPRITES[it.id]) return ITEM_SPRITES[it.id].img;
+  if (typeof ROOM_SPRITES !== "undefined" && ROOM_SPRITES[it.id]) return ROOM_SPRITES[it.id];
+  return null;
+}
+function drawIcon(cv, r) {
+  const g = px(cv); g.clearRect(0, 0, 40, 40);
+  const d = r.d;
+  if (d.colors) { g.fillStyle = d.colors.wall || d.colors.floor; g.fillRect(4, 4, 32, 32); g.fillStyle = d.colors.line; for (let y = 8; y < 36; y += 8) g.fillRect(4, y, 32, 2); return; }
+  if (r.kind === "custom" && d.png && !d._img) { const im = new Image(); im.onload = () => { d._img = im; drawIcon(cv, r); }; im.src = d.png; return; }
+  const img = iconOf(r); if (!img) return;
+  const s = Math.min(2, 36 / img.width, 36 / img.height);
+  g.drawImage(img, (40 - img.width * s) / 2, (40 - img.height * s) / 2, img.width * s, img.height * s);
+}
+
+// ---------- 편집 ----------
+let form = null; // 지금 편집 중인 값
+function openItem(kind, id) {
+  $("empty").classList.add("hide"); $("editor").classList.remove("hide"); say("");
+  if (kind === "custom") {
+    const d = custom[id];
+    form = { kind, id, name: d.name, slot: d.slot, sub: d.sub, price: d.price, level: d.level || 1, gen: d.gen || 1, season: d.season || [], png: d.png || null, x: d.x || 0, y: d.y || 0, colors: d.colors || null, hidden: !!d.hidden };
+  } else {
+    const it = baseItems().find((x) => x.id === id), o = overrides[id] || {};
+    form = { kind, id, name: it.name, slot: it.slot, price: o.price != null ? o.price : it.price, level: o.level != null ? o.level : it.level, gen: o.gen != null ? o.gen : (it.gen || 1),
+      season: o.season !== undefined ? (o.season || []) : (it.season || []), hidden: o.hidden != null ? o.hidden : false, base: it };
+  }
+  sel = { kind, id };
+  showForm(); renderList();
+}
+$("newBtn").onclick = () => {
+  if (!isAdmin) return alert("관리자 계정으로 로그인해 주세요");
+  form = { kind: "custom", id: "c_" + Date.now().toString(36), name: "", slot: "head", sub: "", price: 100, level: 1, gen: 1, season: [], png: null, x: 16, y: 0, colors: null, hidden: false, isNew: true };
+  sel = { kind: "custom", id: form.id };
+  $("empty").classList.add("hide"); $("editor").classList.remove("hide"); say("");
+  showForm(); renderList();
+};
+function showForm() {
+  const base = form.kind === "base";
+  $("name").value = form.name || ""; $("name").disabled = base;
+  $("slot").value = form.slot in SLOTS ? form.slot : "head"; $("slot").disabled = base;
+  fillSubs($("slot").value, form.sub);
+  if (base) { $("sub").disabled = true; $("dropBox").classList.add("hide"); $("patternBox").classList.add("hide"); $("nudgeBox").classList.add("hide"); }
+  if (!base && SLOTS[form.slot] && SLOTS[form.slot].pattern) {
+    const c = form.colors || { wall: "#fff4e0", floor: "#e8c39e", line: "#ffd3e3", pattern: SLOTS[form.slot].pattern[0] };
+    $("pattern").value = c.pattern; $("c1").value = c.wall || c.floor; $("c2").value = c.line;
+  }
+  $("price").value = form.price; $("level").value = form.level; $("gen").value = form.gen || 1;
+  [...$("months").children].forEach((s) => s.classList.toggle("on", (form.season || []).includes(+s.dataset.m)));
+  $("saveBtn").textContent = base ? "💾 바꾼 값 저장" : "🛍 상점에 올리기";
+  $("hideBtn").textContent = form.hidden ? "👀 다시 보이기" : "🙈 숨기기";
+  $("delBtn").textContent = base ? "↩ 원래대로" : "🗑 삭제";
+  $("btnNote").textContent = base ? "※ 그림 · 이름은 그대로예요. 가격 · 키 · 세대 · 판매 달 · 숨기기만 바꿔요" : "※ 이미 산 사람은 숨기거나 삭제해도 '내 아이템'에 그대로 남아요";
+  const o = base && form.base;
+  $("origBox").classList.toggle("hide", !o);
+  if (o) $("origBox").textContent = "원래 값: 💰" + o.price + " · 📏" + HEIGHT_STEPS[o.level] + "cm" + (o.season ? " · " + o.season.join(",") + "월 한정" : "");
+  loadUpImage(); drawPreview();
+}
+function readForm() {
+  if (!form) return;
+  if (form.kind === "custom") {
+    form.name = $("name").value.trim(); form.slot = $("slot").value; form.sub = $("sub").value || "";
+    const S = SLOTS[form.slot];
+    if (S.pattern) form.colors = { [form.slot === "wallpaper" ? "wall" : "floor"]: $("c1").value, line: $("c2").value, pattern: $("pattern").value };
+    else form.colors = null;
+  }
+  form.price = Math.max(0, parseInt($("price").value, 10) || 0);
+  form.level = +$("level").value; form.gen = +$("gen").value;
+  form.season = [...$("months").children].filter((s) => s.classList.contains("on")).map((s) => +s.dataset.m);
+  drawPreview();
+}
+["name", "price", "level", "gen", "sub", "pattern", "c1", "c2"].forEach((id) => { $(id).oninput = readForm; $(id).onchange = readForm; });
+$("slot").onchange = () => { fillSubs($("slot").value); if (SLOTS[$("slot").value].pattern) { $("c1").value = "#fff4e0"; $("c2").value = "#ffd3e3"; } readForm(); };
+
+// 그림 올리기
+let upImg = null;
+function loadUpImage() {
+  upImg = null;
+  if (form.png) { const im = new Image(); im.onload = () => { upImg = im; drawPreview(); }; im.src = form.png; }
+  else drawPreview();
+}
+$("dropBox").onclick = () => $("file").click();
+$("file").onchange = (e) => e.target.files[0] && takeFile(e.target.files[0]);
+$("dropBox").ondragover = (e) => { e.preventDefault(); $("dropBox").classList.add("over"); };
+$("dropBox").ondragleave = () => $("dropBox").classList.remove("over");
+$("dropBox").ondrop = (e) => { e.preventDefault(); $("dropBox").classList.remove("over"); e.dataTransfer.files[0] && takeFile(e.dataTransfer.files[0]); };
+function takeFile(f) {
+  const r = new FileReader();
+  r.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const m = SLOTS[form.slot].max || [64, 64];
+      if (im.width > m[0] || im.height > m[1]) return say("그림이 너무 커요 (" + im.width + "×" + im.height + ") · 최대 " + m[0] + "×" + m[1]);
+      // 깔끔하게 PNG로 다시 저장
+      const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; c.getContext("2d").drawImage(im, 0, 0);
+      form.png = c.toDataURL("image/png");
+      if (form.isNew && SLOTS[form.slot].wear) { form.x = Math.round((64 - im.width) / 2); form.y = form.slot === "head" ? 2 : form.slot === "face" ? 24 : 34; }
+      upImg = im; say(""); drawPreview();
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(f);
+}
+document.querySelectorAll("#nudgeBox button").forEach((b) => (b.onclick = () => { const [dx, dy] = b.dataset.d.split(",").map(Number); form.x += dx; form.y += dy; drawPreview(); }));
+
+// 미리보기
+function drawPreview() {
+  if (!form) return;
+  const cv = $("prevCv"), g = px(cv); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 256, 256);
+  const base = form.kind === "base", S = SLOTS[form.slot] || {};
+  const img = base ? iconOf({ kind: "base", d: form.base }) : upImg;
+  $("upCv").width = upImg ? upImg.width : 1; $("upCv").height = upImg ? upImg.height : 1;
+  if (upImg) px($("upCv")).drawImage(upImg, 0, 0);
+  if (S.wear) {
+    g.scale(4, 4);
+    if (typeof HAI_SPRITES !== "undefined") g.drawImage(HAI_SPRITES.happy || HAI_SPRITES.basic, 0, 0);
+    if (img) { const sp = base ? ITEM_SPRITES[form.id] : null; g.drawImage(img, base && sp ? sp.x : form.x, base && sp ? sp.y : form.y); }
+    $("pos").innerHTML = "x " + form.x + "<br>y " + form.y;
+  } else {
+    // 작은 방
+    g.scale(2, 2);
+    const wall = form.slot === "wallpaper" && form.colors ? form.colors : { wall: "#fff4e0", line: "#ffe2b8" };
+    const fl = form.slot === "floorTile" && form.colors ? form.colors : { floor: "#e8c39e", line: "#d9ad85" };
+    g.fillStyle = wall.wall; g.fillRect(0, 0, 128, 88);
+    g.fillStyle = wall.line; for (let x = 4; x < 128; x += 10) for (let y = 4; y < 88; y += 10) g.fillRect(x, y, 2, 2);
+    g.fillStyle = fl.floor; g.fillRect(0, 88, 128, 40);
+    g.fillStyle = fl.line; for (let y = 92; y < 128; y += 8) g.fillRect(0, y, 128, 1);
+    if (img) {
+      if (form.slot === "wall" || form.slot === "sticker") g.drawImage(img, Math.round(64 - img.width / 2), Math.round(46 - img.height / 2));
+      else if (form.slot === "rug") g.drawImage(img, Math.round(64 - img.width / 2), 108);
+      else g.drawImage(img, Math.round(64 - img.width / 2), 112 - img.height);
+    }
+  }
+  drawCell(img);
+}
+function drawCell(img) {
+  const c = $("cellCv"), g = px(c); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.scale(3, 3);
+  g.fillStyle = "#2a4a80"; g.fillRect(0, 0, 46, 36); g.fillStyle = "#fff"; g.fillRect(1, 1, 44, 34);
+  if (form.colors) { g.fillStyle = form.colors.wall || form.colors.floor; g.fillRect(9, 5, 28, 20); g.fillStyle = form.colors.line; for (let y = 9; y < 25; y += 6) g.fillRect(9, y, 28, 2); }
+  else if (img) { const s = Math.min(1, 42 / img.width, 24 / img.height); g.drawImage(img, Math.round((46 - img.width * s) / 2), Math.round(3 + (24 - img.height * s) / 2), img.width * s, img.height * s); }
+  g.fillStyle = "#ffd34d"; g.fillRect(10, 27, 6, 6);
+  g.fillStyle = "#2a4a80"; g.font = "bold 7px sans-serif"; g.fillText(String(form.price), 18, 32.5);
+  if (form.season && form.season.length) { g.fillStyle = "#e2574c"; g.fillRect(1, 1, 15, 8); g.fillStyle = "#fff"; g.font = "bold 5px sans-serif"; g.fillText("한정", 3, 7); }
+}
+
+// ---------- 저장 · 숨기기 · 삭제 ----------
+async function saveCustom(extra) {
+  readForm();
+  const S = SLOTS[form.slot];
+  if (!form.name) return say("이름을 써 주세요");
+  if (!S.pattern && !form.png) return say("그림을 올려 주세요");
+  const doc = { name: form.name, slot: form.slot, sub: form.sub || (S.subs ? S.subs[0] : ""), price: form.price, level: form.level, gen: form.gen, season: form.season,
+    hidden: !!form.hidden, deleted: false, updatedAt: Date.now() };
+  if (S.pattern) doc.colors = form.colors; else { doc.png = form.png; doc.x = form.x; doc.y = form.y; }
+  Object.assign(doc, extra || {});
+  try {
+    await db.collection("shopItems").doc(form.id).set(doc);
+    custom[form.id] = doc; form.isNew = false; Object.assign(form, extra || {});
+    say(doc.deleted ? "삭제했어요" : doc.hidden ? "숨겼어요 (상점에 안 나와요)" : "상점에 올렸어요! 게임을 켜면 바로 보여요 🎉", true);
+    showForm(); renderList();
+  } catch (e) { say("저장이 안 됐어요: " + (e.code || e.message) + (isAdmin ? "" : " · 관리자 등록이 필요해요")); }
+}
+async function saveOverride(extra) {
+  readForm();
+  const o = Object.assign({ price: form.price, level: form.level, gen: form.gen, season: form.season, hidden: !!form.hidden, updatedAt: Date.now() }, extra || {});
+  try { await db.collection("shopOverrides").doc(form.id).set(o); overrides[form.id] = o; Object.assign(form, extra || {}); say("저장했어요! 게임 상점에 바로 반영돼요", true); showForm(); renderList(); }
+  catch (e) { say("저장이 안 됐어요: " + (e.code || e.message)); }
+}
+$("saveBtn").onclick = () => form.kind === "custom" ? saveCustom({ hidden: false }) : saveOverride();
+$("hideBtn").onclick = () => form.kind === "custom" ? saveCustom({ hidden: !form.hidden }) : saveOverride({ hidden: !form.hidden });
+$("delBtn").onclick = async () => {
+  if (form.kind === "custom") {
+    if (form.isNew) { form = null; $("editor").classList.add("hide"); $("empty").classList.remove("hide"); return; }
+    if (!confirm("'" + form.name + "'을(를) 삭제할까요?\n(이미 산 사람은 그대로 가지고 있어요)")) return;
+    await saveCustom({ hidden: true, deleted: true });
+    form = null; sel = null; $("editor").classList.add("hide"); $("empty").classList.remove("hide"); renderList();
+  } else {
+    if (!overrides[form.id]) return say("바꾼 값이 없어요");
+    if (!confirm("원래 값으로 되돌릴까요?")) return;
+    try { await db.collection("shopOverrides").doc(form.id).delete(); delete overrides[form.id]; openItem("base", form.id); say("원래대로 돌렸어요", true); }
+    catch (e) { say("안 됐어요: " + (e.code || e.message)); }
+  }
+};
+</script>
+</body>
+</html>
