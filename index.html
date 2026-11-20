@@ -117,6 +117,8 @@ input[type=color]{padding:2px;height:36px}
         <label id="hoodRow" class="hide" style="display:flex;align-items:center;gap:8px;font-weight:700;color:#2a4a80"><input type="checkbox" id="hood" style="width:auto"> 🐸 머리까지 덮는 옷 (입으면 모자 · 네일을 숨겨요)</label>
         <label>📅 한정 판매 (고르면 그 달에만 상점에 나와요 · 안 고르면 항상)</label>
         <div class="months" id="months"></div>
+        <label>🗓 공개 날짜 · 시간 (비워 두면 올리자마자 바로 · 정하면 그때 상점에 나와요)</label>
+        <div style="display:flex;gap:8px;align-items:center"><input type="datetime-local" id="release" style="flex:1"><button type="button" id="releaseClear" style="padding:6px 10px;border:2px solid #b8c4d8;border-radius:8px;background:#fff;font:inherit;cursor:pointer">바로 공개</button></div>
         <div class="shopprev"><span>상점에서 보이는 모습 →</span><canvas id="cellCv" width="138" height="108"></canvas></div>
         <div id="origBox" class="orig hide"></div>
         <div class="btns">
@@ -168,6 +170,8 @@ const SLOTS = {
 const SUB_NAMES = { furni: "가구", doll: "인형", pet: "동물", frame: "액자", rug: "러그", sticker: "스티커", wallpaper: "벽지", floor: "바닥" };
 const PATTERN_NAMES = { stripe: "줄무늬", dots: "물방울", check: "체크", hearts: "하트", stars: "별", polka: "큰 땡땡이", cloud: "구름", rainbow: "무지개 줄무늬", berry: "딸기", snowflake: "눈송이", wood: "원목", checker: "체크무늬", tile: "타일" };
 const $ = (id) => document.getElementById(id);
+const toLocalDT = (ms) => (ms ? new Date(ms - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "");
+const fmtRelease = (ms) => { const d = new Date(ms); return (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
 const px = (c) => { const g = c.getContext("2d"); g.imageSmoothingEnabled = false; return g; };
 
 let db, auth, user = null, isAdmin = false;
@@ -273,7 +277,7 @@ function renderList() {
   $("list").innerHTML = rows.map((r, i) => {
     const o = r.kind === "base" ? overrides[r.id] : null;
     const d = o ? Object.assign({}, r.d, o) : r.d;
-    const st = r.kind === "custom" ? (d.hidden ? '<span class="st s-off">숨김</span>' : '<span class="st s-on">판매 중</span>') : (o ? '<span class="st s-ovr">수정됨</span>' : "");
+    const st = r.kind === "custom" ? (d.hidden ? '<span class="st s-off">숨김</span>' : d.releaseAt > Date.now() ? '<span class="st s-ovr">🗓 ' + fmtRelease(d.releaseAt) + ' 공개</span>' : '<span class="st s-on">판매 중</span>') : (o ? '<span class="st s-ovr">수정됨</span>' : "");
     const g = (d.gen || 1) > 1 ? " · " + d.gen + "대부터" : "";
     return '<div class="row' + (sel && sel.id === r.id ? " sel" : "") + '" data-i="' + i + '"><canvas width="40" height="40"></canvas><div class="meta"><b>' + (d.name || "(이름 없음)") +
       "</b><small>" + (r.kind === "base" && !(r.d.price > 0) ? "🎁 선물·상인 · " : "") + "💰" + (d.price || 0) + " · 📏" + HEIGHT_STEPS[d.level || 1] + "cm" + g + (d.hidden && r.kind === "base" ? " · 숨김" : "") + "</small></div>" + st + "</div>";
@@ -310,7 +314,7 @@ function openItem(kind, id) {
   $("empty").classList.add("hide"); $("editor").classList.remove("hide"); say("");
   if (kind === "custom") {
     const d = custom[id];
-    form = { kind, id, hood: !!d.hidesHead, name: d.name, slot: d.slot, sub: d.sub, price: d.price, level: d.level || 1, gen: d.gen || 1, season: d.season || [], png: d.png || null, x: d.x || 0, y: d.y || 0, colors: d.colors || null, hidden: !!d.hidden };
+    form = { kind, id, release: d.releaseAt || 0, hood: !!d.hidesHead, name: d.name, slot: d.slot, sub: d.sub, price: d.price, level: d.level || 1, gen: d.gen || 1, season: d.season || [], png: d.png || null, x: d.x || 0, y: d.y || 0, colors: d.colors || null, hidden: !!d.hidden };
   } else {
     const it = baseItems().find((x) => x.id === id), o = overrides[id] || {};
     form = { kind, id, name: it.name, slot: it.slot, price: o.price != null ? o.price : it.price, level: o.level != null ? o.level : it.level, gen: o.gen != null ? o.gen : (it.gen || 1),
@@ -346,6 +350,7 @@ function showForm() {
     $("pattern").value = c.pattern; $("c1").value = c.wall || c.floor; $("c2").value = c.line;
   }
   $("hood").checked = !!form.hood;
+  $("release").value = toLocalDT(form.release); $("release").disabled = form.kind === "base"; $("releaseClear").disabled = form.kind === "base";
   if (base) $("hoodRow").classList.add("hide");
   $("price").value = form.price; $("level").value = form.level; $("gen").value = form.gen || 1;
   [...$("months").children].forEach((s) => s.classList.toggle("on", (form.season || []).includes(+s.dataset.m)));
@@ -369,9 +374,11 @@ function readForm() {
   form.price = Math.max(0, parseInt($("price").value, 10) || 0);
   form.level = +$("level").value; form.gen = +$("gen").value;
   form.season = [...$("months").children].filter((s) => s.classList.contains("on")).map((s) => +s.dataset.m);
+  if (form.kind === "custom") form.release = $("release").value ? new Date($("release").value).getTime() : 0;
   drawPreview();
 }
-["name", "price", "level", "gen", "sub", "pattern", "c1", "c2"].forEach((id) => { $(id).oninput = readForm; $(id).onchange = readForm; });
+$("releaseClear").onclick = () => { $("release").value = ""; readForm(); };
+["name", "price", "level", "gen", "sub", "pattern", "c1", "c2", "release"].forEach((id) => { $(id).oninput = readForm; $(id).onchange = readForm; });
 $("slot").onchange = () => { fillSubs($("slot").value); if (SLOTS[$("slot").value].pattern) { $("c1").value = "#fff4e0"; $("c2").value = "#ffd3e3"; } readForm(); };
 
 // 그림 올리기
@@ -461,7 +468,7 @@ async function saveCustom(extra) {
   if (!form.name) return say("이름을 써 주세요");
   if (!S.pattern && !form.png) return say("그림을 올려 주세요");
   const doc = { name: form.name, slot: form.slot, sub: form.sub || (S.subs ? S.subs[0] : ""), price: form.price, level: form.level, gen: form.gen, season: form.season,
-    hidden: !!form.hidden, deleted: false, updatedAt: Date.now(),
+    hidden: !!form.hidden, deleted: false, updatedAt: Date.now(), releaseAt: form.release || 0,
     createdAt: (custom[form.id] && custom[form.id].createdAt) || Date.now() }; // 처음 올린 시각 → 게임 상점에 하루 동안 NEW
   if (S.pattern) doc.colors = form.colors; else { doc.png = form.png; doc.x = form.x; doc.y = form.y; }
   doc.hidesHead = form.slot === "body" && $("hood").checked;
@@ -469,7 +476,7 @@ async function saveCustom(extra) {
   try {
     await db.collection("shopItems").doc(form.id).set(doc);
     custom[form.id] = doc; form.isNew = false; Object.assign(form, extra || {});
-    say(doc.deleted ? "삭제했어요" : doc.hidden ? "숨겼어요 (상점에 안 나와요)" : "상점에 올렸어요! 게임을 켜면 바로 보여요 🎉", true);
+    say(doc.deleted ? "삭제했어요" : doc.hidden ? "숨겼어요 (상점에 안 나와요)" : doc.releaseAt > Date.now() ? "🗓 예약했어요! " + fmtRelease(doc.releaseAt) + "에 상점에 나와요 (그때부터 하루 동안 NEW)" : "상점에 올렸어요! 게임을 켜면 바로 보여요 🎉", true);
     showForm(); renderList();
   } catch (e) { say("저장이 안 됐어요: " + (e.code || e.message) + (isAdmin ? "" : " · 관리자 등록이 필요해요")); }
 }
