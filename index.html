@@ -154,7 +154,7 @@ const SLOTS = {
   head: { name: "👒 모자 (머리)", wear: true, tab: "옷", max: [64, 64] },
   face: { name: "😎 얼굴 (안경 · 볼터치)", wear: true, tab: "옷", max: [64, 64] },
   body: { name: "👕 몸 (옷)", wear: true, tab: "옷", max: [64, 64] },
-  back: { name: "🧣 등 (망토)", wear: true, tab: "옷", max: [80, 72] },
+  back: { name: "🧣 등 (망토 · 날개)", wear: true, tab: "옷", max: [96, 80] },
   hand: { name: "✋ 손 (풍선 · 마법봉)", wear: true, tab: "옷", max: [64, 64] },
   feet: { name: "🧦 발 (양말 · 신발)", wear: true, tab: "옷", max: [64, 64] },
   nail: { name: "💅 손톱", wear: true, tab: "옷", max: [64, 64] },
@@ -397,7 +397,8 @@ function takeFile(f) {
       const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; c.getContext("2d").drawImage(im, 0, 0);
       form.png = c.toDataURL("image/png");
       if (form.kind === "base") $("origImgBtn").classList.remove("hide");
-      if (SLOTS[form.slot].wear && im.width === 64 && im.height === 64) { form.x = 0; form.y = 0; } // 하이 원본 크기로 그린 옷은 딱 겹치게
+      if (SLOTS[form.slot].wear && im.width === 64 && im.height === 64) { form.x = 0; form.y = 0; }
+      else if (SLOTS[form.slot].wear && im.width === 96 && im.height === 72) { form.x = -16; form.y = -8; } // 하이 둘레 여백 포함 그림 (망토 · 날개) // 하이 원본 크기로 그린 옷은 딱 겹치게
       else if (form.isNew && SLOTS[form.slot].wear) { form.x = Math.round((64 - im.width) / 2); form.y = form.slot === "head" ? 2 : form.slot === "face" ? 24 : 34; }
       upImg = im; say(""); drawPreview();
     };
@@ -417,8 +418,8 @@ function drawPreview() {
   $("upCv").width = upImg ? upImg.width : 1; $("upCv").height = upImg ? upImg.height : 1;
   if (upImg) px($("upCv")).drawImage(upImg, 0, 0);
   if (S.wear) {
-    g.scale(3, 3);
-    g.translate(10, 10); // 망토 · 귀마개처럼 하이 밖으로 나온 부분도 보이게
+    if (form.slot === "back") { g.scale(2.5, 2.5); g.translate(19, 14); } // 날개 · 망토는 넓게
+    else { g.scale(3, 3); g.translate(10, 10); } // 망토 · 귀마개처럼 하이 밖으로 나온 부분도 보이게
     if (img && form.slot === "back") g.drawImage(img, form.x, form.y);
     if (typeof HAI_SPRITES !== "undefined") g.drawImage(HAI_SPRITES.happy || HAI_SPRITES.basic, 0, 0);
     if (img && form.slot !== "back") g.drawImage(img, form.x, form.y);
