@@ -391,6 +391,8 @@ function takeFile(f) {
   r.onload = () => {
     const im = new Image();
     im.onload = () => {
+      // 날개 · 망토 크기(96×72)는 종류를 안 골랐어도 받아서 '등'으로 바꿔 줘요
+      if (form.kind === "custom" && im.width === 96 && im.height === 72 && form.slot !== "back") { $("slot").value = "back"; fillSubs("back"); readForm(); }
       const m = (SLOTS[form.slot] && SLOTS[form.slot].max) || [80, 64];
       if (im.width > m[0] || im.height > m[1]) return say("그림이 너무 커요 (" + im.width + "×" + im.height + ") · 최대 " + m[0] + "×" + m[1]);
       // 깔끔하게 PNG로 다시 저장
@@ -512,8 +514,8 @@ const toDate = (ms) => (ms ? new Date(ms - new Date().getTimezoneOffset() * 6000
 const fromDate = (v, end) => (v ? new Date(v + (end ? "T23:59:59" : "T00:00:00")).getTime() : 0);
 const SECS = {
   titles: { coll: "titleRules", name: "🏅 조건 칭호", help: "조건을 채우면 게임에서 바로 칭호를 받아요. 이미 받은 칭호는 여기서 지워도 그대로 남아요.",
-    fields: [["title", "칭호 이름", "text"], ["stat", "조건", "stat"], ["n", "몇 이상", "number"], ["coins", "보상 코인 (없으면 0)", "number"]],
-    label: (d) => "「" + (d.title || "") + "」", sub: (d) => (STATS[d.stat] || d.stat) + " " + (d.n || 0) + " 이상" + (d.coins ? " · 코인 " + d.coins : "") },
+    fields: [["title", "칭호 이름", "text"], ["stat", "조건", "stat"], ["n", "몇 이상 (세트면 안 써도 돼요)", "number"], ["items", "🎁 세트 아이템 (조건이 '세트'일 때 · 전부 가지면 칭호)", "items"], ["coins", "보상 코인 (없으면 0)", "number"]],
+    label: (d) => "「" + (d.title || "") + "」", sub: (d) => (d.stat === "set" ? "🎁 세트 " + ((d.items || []).map(itemName).join(" · ") || "(아이템 없음)") : (STATS[d.stat] || d.stat) + " " + (d.n || 0) + " 이상") + (d.coins ? " · 코인 " + d.coins : "") },
   notices: { coll: "notices", name: "📢 새 소식", help: "올리면 게임을 켤 때 '✨ 새 소식' 창이 한 번 떠요. 내용은 한 줄에 하나씩 (최대 9줄). 설정 → 📰 새 소식에서 다시 볼 수 있어요.",
     fields: [["title", "제목", "text"], ["body", "내용 (한 줄에 하나씩)", "lines"]],
     label: (d) => d.title || "(제목 없음)", sub: (d) => (d.at ? new Date(d.at).toLocaleDateString() : "") },
@@ -574,7 +576,14 @@ function renderOpsList() {
 }
 function fieldHtml(f, v) {
   const [k, label, type] = f; let inp;
-  if (type === "stat") inp = '<select id="f_' + k + '">' + Object.keys(STATS).map((s) => '<option value="' + s + '"' + (v === s ? " selected" : "") + ">" + STATS[s] + "</option>").join("") + "</select>";
+  if (type === "items") {
+    const sel = Array.isArray(v) ? v : [];
+    const all = setItemChoices();
+    inp = '<input id="f_items_q" placeholder="이름으로 찾기" style="margin-bottom:6px"><div id="f_items" style="max-height:180px;overflow:auto;border:2px solid #b8c4d8;border-radius:8px;padding:6px;font-size:13px">' +
+      all.map((it) => '<label data-n="' + it.name + '" style="display:flex;align-items:center;gap:6px;font-weight:400;margin:2px 0"><input type="checkbox" value="' + it.id + '" style="width:auto"' + (sel.includes(it.id) ? " checked" : "") + "> " + it.name + ' <small style="color:#8a96b0">' + it.tag + "</small></label>").join("") + "</div>";
+    return "<label>" + label + "</label>" + inp;
+  }
+  if (type === "stat") inp = '<select id="f_' + k + '">' + Object.keys(STATS).map((s) => '<option value="' + s + '"' + (v === s ? " selected" : "") + ">" + STATS[s] + "</option>").join("") + '<option value="set"' + (v === "set" ? " selected" : "") + '>🎁 세트 · 아이템 전부 모으기</option></select>';
   else if (type === "item") inp = '<select id="f_' + k + '"><option value="">(없음)</option>' + (ITEMS || []).filter((i) => i.price > 0 || i.gift).map((i) => '<option value="' + i.id + '"' + (v === i.id ? " selected" : "") + ">" + i.name + "</option>").join("") + "</select>";
   else if (type === "topic") inp = '<select id="f_' + k + '"><option value="">✨ 새 주제 만들기</option>' + (LIAR_TOPICS || []).map((t) => '<option value="' + t.id + '"' + (v === t.id ? " selected" : "") + ">" + (t.icon || "") + " " + t.name + " (" + t.words.length + ")</option>").join("") + "</select>";
   else if (type === "lines") inp = '<textarea id="f_' + k + '" rows="6" style="width:100%;padding:8px;border:2px solid #b8c4d8;border-radius:8px;font:inherit;color:#2a4a80">' + (v || "") + "</textarea>";
@@ -582,9 +591,16 @@ function fieldHtml(f, v) {
   else inp = '<input id="f_' + k + '" type="' + (type === "number" ? "number" : "text") + '" value="' + (v == null ? "" : String(v).replace(/"/g, "&quot;")) + '">';
   return "<label>" + label + "</label>" + inp;
 }
+// 세트에 넣을 수 있는 아이템: 관리자가 만든 것 + 게임에 원래 있는 것
+function setItemChoices() {
+  const out = Object.keys(custom || {}).filter((id) => !custom[id].deleted).map((id) => ({ id, name: custom[id].name || id, tag: "✨ 새로 만든" }));
+  for (const it of (typeof ITEMS !== "undefined" ? ITEMS : [])) if (!it.custom && it.slot !== "consumable" && !out.find((o) => o.id === it.id)) out.push({ id: it.id, name: it.name, tag: it.price > 0 ? "상점" : "선물·상인" });
+  return out;
+}
 function fillOps(d, id) {
   const S = SECS[sec]; d = d || {};
   $("opsForm").innerHTML = S.fields.map((f) => fieldHtml(f, f[0] === S.idField ? id : d[f[0]])).join("");
+  if ($("f_items_q")) $("f_items_q").oninput = () => { const q = $("f_items_q").value.trim(); [...$("f_items").children].forEach((l) => (l.style.display = !q || l.dataset.n.includes(q) ? "flex" : "none")); };
   if (S.idField && id) $("f_" + S.idField).disabled = true;
   $("opsHide").textContent = d.hidden ? "👀 다시 켜기" : "🙈 숨기기";
 }
@@ -597,6 +613,7 @@ function readOps() {
     if (type === "number") d[k] = el.value === "" ? 0 : +el.value;
     else if (type === "date") d[k] = fromDate(el.value, false);
     else if (type === "dateEnd") d[k] = fromDate(el.value, true);
+    else if (type === "items") d[k] = [...el.querySelectorAll("input:checked")].map((c) => c.value);
     else d[k] = el.value.trim();
   }
   return d;
@@ -607,6 +624,7 @@ async function saveOps(extra) {
   if (S.idField) { id = id || String(d.code || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); delete d.code; if (!id) return om("코드를 써 주세요"); }
   if (!id) id = sec[0] + Date.now().toString(36);
   if (sec === "titles" && !d.title) return om("칭호 이름을 써 주세요");
+  if (sec === "titles" && d.stat === "set" && !(d.items || []).length) return om("세트 아이템을 하나 이상 골라 주세요");
   if (sec === "notices" && !d.title) return om("제목을 써 주세요");
   const old = opsData[id] || {};
   d.at = old.at || Date.now(); d.updatedAt = Date.now();
