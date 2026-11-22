@@ -514,7 +514,7 @@ const STATS = {
   play_anchovy: "멸치잡기 · 플레이 횟수", play_beat: "쑥쑥비트 · 플레이 횟수", play_growrun: "쑥쑥런 · 플레이 횟수", play_stairs: "쑥쑥계단 · 플레이 횟수", play_word: "끝말잇기(하이랑) · 플레이 횟수",
   height: "하이 · 키 (cm)", gen: "하이 · 세대", attend: "하이 · 출석 일수", secrets: "하이 · 찾은 비밀 수", dex: "하이 · 바다 도감 종류",
   friends: "친구 · 친구 수", visits: "친구 · 친구 집 놀러 간 횟수", giftsSent: "친구 · 선물 보낸 횟수", shoutsUsed: "친구 · 확성기 쓴 횟수",
-  ev_snack: "돌보기 · 간식 준 횟수", ev_pet: "돌보기 · 쓰다듬은 횟수", ev_exercise: "돌보기 · 체조 횟수", ev_harvest: "돌보기 · 화단 수확 횟수", ev_highfive: "돌보기 · 하이파이브 횟수", digs: "마당 · 땅 판 횟수", digDex: "마당 · 발굴 도감 종류", merchantTrades: "마당 · 상인과 거래한 횟수",
+  ev_snack: "돌보기 · 간식 준 횟수", ev_pet: "돌보기 · 쓰다듬은 횟수", ev_exercise: "돌보기 · 체조 횟수", ev_harvest: "돌보기 · 화단 수확 횟수", ev_highfive: "돌보기 · 하이파이브 횟수", digs: "마당 · 땅 판 횟수", digDex: "마당 · 발굴 도감 종류", merchantTrades: "마당 · 상인과 거래한 횟수", bugs: "방 · 바퀴벌레 쫓은 횟수", yardEvents: "마당 · 이벤트 성공 횟수", snowman: "마당 · 눈사람 만든 횟수", moonRabbit: "마당 · 달토끼 만난 횟수", flowersSent: "광장 · 꽃 선물한 횟수",
 };
 const DAY = 86400000;
 const toDate = (ms) => (ms ? new Date(ms - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10) : "");
@@ -561,7 +561,7 @@ async function openSec() {
 }
 // 게임에 원래 있는 칭호 (코드에 들어 있어서 여기선 보기만)
 const BASE_TITLES = [
-  ["🌊 바다 도감", "바다 탐험가 (10종) · 바다 박사 (18종) · 바다 친구 (20종) · 바다 수호자 (25종) · 바다의 전설 (30종)"],
+  ["🌊 바다 도감", "바다 탐험가 (10종) · 바다 박사 (18종) · 바다 친구 (20종) · 바다 수호자 (25종) · 바다의 전설 (30종) · 바다 박물관장 (40종) · 바다의 왕 하이 (50종)"],
   ["🤫 비밀 쪽지", "따끔 마스터 (해파리 한 판 5번) · 용감한 하이 (쑥쑥비트 풀콤보) · 쌩쌩이 왕 (꾸욱 노트 10번)"],
   ["🎲 놀이방 씨앗 (꽃 10송이)", "끝말 장인 · 명탐정 · 마피아 사냥꾼"],
   ["🪜 쑥쑥계단", "우주 탐험가 (500계단) · 달에 간 하이 (1000계단)"],
@@ -570,7 +570,7 @@ const BASE_TITLES = [
   ["그 밖", "100일 단짝 (출석 100일) · 파이의 단짝 (파이 ♥100) · 메리 하이마스 (12월 25일) · 땅속까지 뒤지는 하이 (발굴 도감 30종) · 상인의 단골 하이 (단골 도장 10개)"],
 ];
 function baseTitlesHtml() {
-  return '<div style="margin-top:14px;padding-top:10px;border-top:2px dashed #b8c4d8"><b style="font-size:13px">📜 원래 있는 칭호 (27개 · 보기만)</b>' +
+  return '<div style="margin-top:14px;padding-top:10px;border-top:2px dashed #b8c4d8"><b style="font-size:13px">📜 원래 있는 칭호 (29개 · 보기만)</b>' +
     BASE_TITLES.map(([g, t]) => '<div style="font-size:12px;margin-top:6px"><b>' + g + '</b><br><span style="color:#5a6a8a">' + t + "</span></div>").join("") + "</div>";
 }
 function renderOpsList() {
@@ -712,9 +712,12 @@ async function openUsers() {
   $("opsTitle").textContent = "👀 친구들 현황"; $("opsHelp").textContent = "게임에 닉네임을 정한 사람들이에요 (보기만 해요). 마지막 접속 순.";
   $("opsBtns").classList.add("hide"); $("opsNew").classList.add("hide"); $("opsForm").innerHTML = "";
   try {
+    let plazaLine = "";
+    try { const pz = await db.collection("plaza").get(); const live = pz.docs.map((d) => d.data()).filter((v) => v.at > Date.now() - 60000); const byCh = {}; live.forEach((v) => (byCh[v.ch] = (byCh[v.ch] || 0) + 1));
+      plazaLine = "🏛 지금 광장에 " + live.length + "명" + (live.length ? " (" + Object.keys(byCh).sort().map((c) => c + "채널 " + byCh[c] + "명").join(" · ") + ") · " + live.map((v) => v.nick).join(", ") : ""); } catch (e) { plazaLine = "🏛 광장 인원을 못 불러왔어요 (Firebase 규칙에 plaza가 있는지 확인)"; }
     const s = await db.collection("users").get();
     const rows = s.docs.map((d) => d.data()).filter((u) => u.nick && !u.moved).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-    $("opsList").innerHTML = '<div class="note">' + rows.length + "명</div>";
+    $("opsList").innerHTML = '<div class="note">' + rows.length + "명</div>" + '<div class="note" style="font-weight:700;color:#2f9e6e">' + plazaLine + "</div>";
     $("opsForm").innerHTML = '<table style="width:100%;font-size:13px;border-collapse:collapse">' +
       "<tr style=\"text-align:left;border-bottom:2px solid #b8c4d8\"><th>닉네임</th><th>칭호</th><th>키</th><th>세대</th><th>비밀</th><th>코드</th><th>마지막 접속</th></tr>" +
       rows.map((u) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + u.nick + "</b></td><td>" + (u.badge || "") + "</td><td>" + (u.heightCm ? (Math.round(u.heightCm * 10) / 10) + "cm" : "") + "</td><td>" + ((u.gen && u.gen.no) || 1) + "대</td><td>" + (u.secrets || 0) + "</td><td>" + (u.code || "") + "</td><td>" + (u.updatedAt ? new Date(u.updatedAt).toLocaleString() : "") + "</td></tr>").join("") + "</table>";
