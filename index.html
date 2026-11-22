@@ -514,7 +514,7 @@ const STATS = {
   play_anchovy: "멸치잡기 · 플레이 횟수", play_beat: "쑥쑥비트 · 플레이 횟수", play_growrun: "쑥쑥런 · 플레이 횟수", play_stairs: "쑥쑥계단 · 플레이 횟수", play_word: "끝말잇기(하이랑) · 플레이 횟수",
   height: "하이 · 키 (cm)", gen: "하이 · 세대", attend: "하이 · 출석 일수", secrets: "하이 · 찾은 비밀 수", dex: "하이 · 바다 도감 종류",
   friends: "친구 · 친구 수", visits: "친구 · 친구 집 놀러 간 횟수", giftsSent: "친구 · 선물 보낸 횟수", shoutsUsed: "친구 · 확성기 쓴 횟수",
-  ev_snack: "돌보기 · 간식 준 횟수", ev_pet: "돌보기 · 쓰다듬은 횟수", ev_exercise: "돌보기 · 체조 횟수", ev_harvest: "돌보기 · 화단 수확 횟수", ev_highfive: "돌보기 · 하이파이브 횟수", digs: "마당 · 땅 판 횟수", digDex: "마당 · 발굴 도감 종류", merchantTrades: "마당 · 상인과 거래한 횟수", bugs: "방 · 바퀴벌레 쫓은 횟수", yardEvents: "마당 · 이벤트 성공 횟수", snowman: "마당 · 눈사람 만든 횟수", moonRabbit: "마당 · 달토끼 만난 횟수", flowersSent: "광장 · 꽃 선물한 횟수",
+  ev_snack: "돌보기 · 간식 준 횟수", ev_pet: "돌보기 · 쓰다듬은 횟수", ev_exercise: "돌보기 · 체조 횟수", ev_harvest: "돌보기 · 화단 수확 횟수", ev_highfive: "돌보기 · 하이파이브 횟수", digs: "마당 · 땅 판 횟수", digDex: "마당 · 발굴 도감 종류", merchantTrades: "마당 · 상인과 거래한 횟수", bugs: "방 · 바퀴벌레 쫓은 횟수", yardEvents: "마당 · 이벤트 성공 횟수", snowman: "마당 · 눈사람 만든 횟수", moonRabbit: "마당 · 달토끼 만난 횟수", flowersSent: "광장 · 꽃 선물한 횟수", dances: "광장 · 춤춘 횟수", groupDance: "광장 · 떼춤 성공 횟수", plazaYoga: "광장 · 아침 요가 참여 횟수", plazaParty: "광장 · 저녁 댄스파티 참여 횟수", plazaFire: "광장 · 불꽃놀이 참여 횟수", omokWins: "광장 · 오목 이긴 횟수", bingoWins: "광장 · 빙고 1등 횟수", bingoPlays: "광장 · 빙고 참가 횟수", jobs: "알바 · 전체 알바 횟수", job_cafe: "알바 · 카페 알바 횟수", job_flower: "알바 · 꽃집 알바 횟수", job_post: "알바 · 우체국 알바 횟수",
 };
 const DAY = 86400000;
 const toDate = (ms) => (ms ? new Date(ms - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10) : "");
@@ -689,7 +689,7 @@ const DIG_NAMES = "🪨 흔함: stone 그냥 돌 · oddstone 이상한 돌 · tw
 const TA = (id, v, rows) => '<textarea id="' + id + '" rows="' + rows + '" style="width:100%;padding:8px;border:2px solid #b8c4d8;border-radius:8px;font:inherit;color:#2a4a80">' + (v || "") + "</textarea>";
 function merchantForm(d) {
   const m = Object.assign({}, M_DEF, d);
-  $("opsTitle").textContent = "🦝 수상한 상인";
+  $("opsTitle").textContent = "🦝 수상한 상인 · 🏛 광장 시간표";
   $("opsHelp").textContent = "보따리 멘 너구리 상인이 마당에 오는 요일 · 시간과 거래 목록이에요. 비워 두면 기본값을 써요. 저장하면 켜 둔 게임엔 최대 10분 뒤 반영.";
   $("opsList").innerHTML = '<div class="note" style="white-space:pre-line;font-size:12px;line-height:1.6"><b>물건 이름표 (id)</b>\n' + DIG_NAMES + "</div>";
   const DN = ["일", "월", "화", "수", "목", "금", "토"];
@@ -699,12 +699,28 @@ function merchantForm(d) {
     "<label>💰 오늘 찾는 물건 (한 줄에 하나: id 가격 · 비워 두면 매일 자동으로 3개, 평소 값의 3배)</label>" + TA("m_wants", m.wants, 3) +
     "<label>🔄 바꿔요 (한 줄에 하나: 재료id*개수 + 재료id*개수 > 받을 아이템id · 몇 줄이든 · 게임에선 4개씩 넘겨 봐요)</label>" + TA("m_trades", m.trades, 10) +
     "<label>🛍 팔아요 (한 줄에 하나: 아이템id 가격) · 이 중에서 매일 골라서 진열</label>" + TA("m_sells", m.sells, 10) +
-    '<label>하루에 진열할 개수 (최대 4)</label><input type="number" id="m_sellCount" value="' + m.sellCount + '">';
+    '<label>하루에 진열할 개수 (최대 4)</label><input type="number" id="m_sellCount" value="' + m.sellCount + '">' + plazaSchedForm(d.plaza || {});
+}
+// ----- 🏛 광장 시간표 (같은 문서 merchantConfig/main 의 plaza 에 저장) -----
+const PEV_DEF = { yoga: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "10:00", end: "10:30" }, bingo: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "14:00", end: "14:15" }, party: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "17:00", end: "17:30" }, fire: { on: true, days: [6], start: "22:00", end: "22:30" }, flea: { on: true, days: [0], start: "14:00", end: "16:30" } };
+const PEV_NAMES = { yoga: "🧘 아침 요가 (5분 함께하면 보상)", bingo: "🎱 오후 빙고 (8초마다 공 · 75개 다 뽑으면 10분 · 15분 이상으로 잡아 주세요)", party: "🪩 저녁 댄스파티 (3분 + 춤 3번)", fire: "🎆 불꽃놀이 (하늘 10번 누르기)", flea: "🧺 플리마켓 (너구리 상인이 광장에도 와요 · 상인 오는 시간과 겹칠 때만)" };
+function plazaSchedForm(pl) {
+  const DN = ["일", "월", "화", "수", "목", "금", "토"];
+  return '<h3 style="margin:22px 0 4px">🏛 광장 시간표</h3><div class="note">정해진 시간에 광장에서 다 같이 하는 이벤트예요. 참여하면 하루 한 번 코인 30 + 기분 (빙고는 1등 50 · 2등 30 · 3등 20 · 참가 5). 요가 · 파티 10번, 빙고 1등 5번이면 칭호.</div>' +
+    Object.keys(PEV_DEF).map((k) => { const e = Object.assign({}, PEV_DEF[k], pl[k] || {});
+      return '<div style="border:2px solid #e0e6f0;border-radius:10px;padding:8px 10px;margin-top:8px"><label style="margin:0"><input type="checkbox" id="pv_' + k + '_on"' + (e.on !== false ? " checked" : "") + "> " + PEV_NAMES[k] + "</label><div>" +
+        [1, 2, 3, 4, 5, 6, 0].map((i) => '<label style="display:inline-block;margin-right:8px;font-weight:400"><input type="checkbox" id="pv_' + k + "_d" + i + '"' + (e.days.map(Number).includes(i) ? " checked" : "") + "> " + DN[i] + "</label>").join("") + "</div>" +
+        '<input type="time" id="pv_' + k + '_s" value="' + e.start + '" style="width:auto"> ~ <input type="time" id="pv_' + k + '_e" value="' + e.end + '" style="width:auto"></div>'; }).join("");
+}
+function plazaSchedRead() {
+  const o = {};
+  for (const k in PEV_DEF) o[k] = { on: $("pv_" + k + "_on").checked, days: [0, 1, 2, 3, 4, 5, 6].filter((i) => $("pv_" + k + "_d" + i).checked), start: $("pv_" + k + "_s").value || PEV_DEF[k].start, end: $("pv_" + k + "_e").value || PEV_DEF[k].end };
+  return o;
 }
 function merchantRead() {
   return { days: [0, 1, 2, 3, 4, 5, 6].filter((i) => $("md_" + i).checked), start: $("m_start").value || "14:00", end: $("m_end").value || "16:30",
     stampGoal: +$("m_goal").value || 10, sellCount: Math.min(4, +$("m_sellCount").value || 3),
-    wants: $("m_wants").value.trim(), trades: $("m_trades").value.trim(), sells: $("m_sells").value.trim(), updatedAt: Date.now() };
+    wants: $("m_wants").value.trim(), trades: $("m_trades").value.trim(), sells: $("m_sells").value.trim(), plaza: plazaSchedRead(), updatedAt: Date.now() };
 }
 
 // ----- 👀 친구들 현황 (보기만) -----
