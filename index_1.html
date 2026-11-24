@@ -114,6 +114,7 @@ input[type=color]{padding:2px;height:36px}
           <div><label>📏 필요한 키</label><select id="level"></select></div>
           <div><label>👨‍👩‍👧 필요한 세대</label><select id="gen"></select></div>
         </div>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;color:#c0407a"><input type="checkbox" id="giftOnly" style="width:auto"> 🎁 쿠폰 · 선물 전용 (상점에 안 나와요 · 쿠폰으로만 받아요)</label>
         <label id="hoodRow" class="hide" style="display:flex;align-items:center;gap:8px;font-weight:700;color:#2a4a80"><input type="checkbox" id="hood" style="width:auto"> 🐸 머리까지 덮는 옷 (입으면 모자 · 네일을 숨겨요)</label>
         <label>📅 한정 판매 (고르면 그 달에만 상점에 나와요 · 안 고르면 항상)</label>
         <div class="months" id="months"></div>
@@ -314,7 +315,7 @@ function openItem(kind, id) {
   $("empty").classList.add("hide"); $("editor").classList.remove("hide"); say("");
   if (kind === "custom") {
     const d = custom[id];
-    form = { kind, id, release: d.releaseAt || 0, hood: !!d.hidesHead, name: d.name, slot: d.slot, sub: d.sub, price: d.price, level: d.level || 1, gen: d.gen || 1, season: d.season || [], png: d.png || null, x: d.x || 0, y: d.y || 0, colors: d.colors || null, hidden: !!d.hidden };
+    form = { kind, id, release: d.releaseAt || 0, hood: !!d.hidesHead, giftOnly: !!d.gift, name: d.name, slot: d.slot, sub: d.sub, price: d.price, level: d.level || 1, gen: d.gen || 1, season: d.season || [], png: d.png || null, x: d.x || 0, y: d.y || 0, colors: d.colors || null, hidden: !!d.hidden };
   } else {
     const it = baseItems().find((x) => x.id === id), o = overrides[id] || {};
     form = { kind, id, name: it.name, slot: it.slot, price: o.price != null ? o.price : it.price, level: o.level != null ? o.level : it.level, gen: o.gen != null ? o.gen : (it.gen || 1),
@@ -349,7 +350,7 @@ function showForm() {
     const c = form.colors || { wall: "#fff4e0", floor: "#e8c39e", line: "#ffd3e3", pattern: SLOTS[form.slot].pattern[0] };
     $("pattern").value = c.pattern; $("c1").value = c.wall || c.floor; $("c2").value = c.line;
   }
-  $("hood").checked = !!form.hood;
+  $("hood").checked = !!form.hood; if ($("giftOnly")) $("giftOnly").checked = !!form.giftOnly;
   $("release").value = toLocalDT(form.release); $("release").disabled = form.kind === "base"; $("releaseClear").disabled = form.kind === "base";
   if (base) $("hoodRow").classList.add("hide");
   $("price").value = form.price; $("level").value = form.level; $("gen").value = form.gen || 1;
@@ -472,6 +473,7 @@ async function saveCustom(extra) {
     createdAt: (custom[form.id] && custom[form.id].createdAt) || Date.now() }; // 처음 올린 시각 → 게임 상점에 하루 동안 NEW
   if (S.pattern) doc.colors = form.colors; else { doc.png = form.png; doc.x = form.x; doc.y = form.y; }
   doc.hidesHead = form.slot === "body" && $("hood").checked;
+  doc.gift = !!$("giftOnly").checked; // 🎁 쿠폰 · 선물 전용
   Object.assign(doc, extra || {});
   try {
     await db.collection("shopItems").doc(form.id).set(doc);
@@ -527,7 +529,7 @@ const SECS = {
     fields: [["title", "제목", "text"], ["body", "내용 (한 줄에 하나씩)", "lines"]],
     label: (d) => d.title || "(제목 없음)", sub: (d) => (d.at ? new Date(d.at).toLocaleDateString() : "") },
   coupons: { coll: "coupons", name: "🎫 쿠폰 코드", help: "게임 설정 → 🎫 쿠폰에서 코드를 넣으면 받아요. 한 사람당 1번만. 기간을 비워 두면 언제든.", idField: "code",
-    fields: [["code", "쿠폰 코드 (영문 · 숫자)", "code"], ["coins", "코인", "number"], ["shouts", "확성기 개수", "number"], ["item", "아이템 (선택)", "item"], ["start", "시작일", "date"], ["end", "끝나는 날", "dateEnd"]],
+    fields: [["code", "쿠폰 코드 (영문 · 숫자)", "code"], ["coins", "코인", "number"], ["shouts", "확성기 개수", "number"], ["item", "아이템 (선택)", "item"], ["item2", "아이템 2 (선택)", "item"], ["item3", "아이템 3 (선택)", "item"], ["start", "시작일", "date"], ["end", "끝나는 날", "dateEnd"]],
     label: (d, id) => id, sub: (d) => [d.coins ? "코인 " + d.coins : "", d.shouts ? "확성기 " + d.shouts : "", d.item ? "아이템 " + itemName(d.item) : "", d.end ? "~" + toDate(d.end) : ""].filter(Boolean).join(" · ") },
   events: { coll: "events", name: "🎉 이벤트", help: "기간 동안 게임에 적용돼요. 코인 배율은 미니게임 보상에, 키 배율은 키가 크는 모든 곳에, 세일은 상점 가격에. 1 = 그대로.",
     fields: [["name", "이벤트 이름", "text"], ["start", "시작일", "date"], ["end", "끝나는 날", "dateEnd"], ["coinX", "미니게임 코인 배율 (예: 2)", "number"], ["growX", "키 성장 배율 (예: 1.5)", "number"], ["sale", "상점 세일 % (예: 20)", "number"]],
@@ -537,7 +539,7 @@ const SECS = {
     label: (d) => topicName(d.topicId) || d.name || "새 주제", sub: (d) => "+" + countW(d.add) + " · -" + countW(d.remove) },
 };
 const countW = (s) => String(s || "").split(/[\s,]+/).filter(Boolean).length;
-const itemName = (id) => ((typeof ITEMS !== "undefined" && ITEMS.find((i) => i.id === id)) || { name: id }).name;
+const itemName = (id) => (typeof custom !== "undefined" && custom && custom[id] && custom[id].name) || ((typeof ITEMS !== "undefined" && ITEMS.find((i) => i.id === id)) || { name: id }).name;
 const topicName = (id) => ((typeof LIAR_TOPICS !== "undefined" && LIAR_TOPICS.find((t) => t.id === id)) || {}).name;
 let sec = "shop", opsData = {}, opsSel = null;
 
@@ -591,7 +593,7 @@ function fieldHtml(f, v) {
     return "<label>" + label + "</label>" + inp;
   }
   if (type === "stat") inp = '<select id="f_' + k + '">' + Object.keys(STATS).map((s) => '<option value="' + s + '"' + (v === s ? " selected" : "") + ">" + STATS[s] + "</option>").join("") + '<option value="set"' + (v === "set" ? " selected" : "") + '>🎁 세트 · 아이템 전부 모으기</option></select>';
-  else if (type === "item") inp = '<select id="f_' + k + '"><option value="">(없음)</option>' + (ITEMS || []).filter((i) => i.price > 0 || i.gift).map((i) => '<option value="' + i.id + '"' + (v === i.id ? " selected" : "") + ">" + i.name + "</option>").join("") + "</select>";
+  else if (type === "item") inp = '<select id="f_' + k + '"><option value="">(없음)</option>' + setItemChoices().map((i) => '<option value="' + i.id + '"' + (v === i.id ? " selected" : "") + ">" + i.name + " (" + i.tag + ")</option>").join("") + "</select>";
   else if (type === "topic") inp = '<select id="f_' + k + '"><option value="">✨ 새 주제 만들기</option>' + (LIAR_TOPICS || []).map((t) => '<option value="' + t.id + '"' + (v === t.id ? " selected" : "") + ">" + (t.icon || "") + " " + t.name + " (" + t.words.length + ")</option>").join("") + "</select>";
   else if (type === "lines") inp = '<textarea id="f_' + k + '" rows="6" style="width:100%;padding:8px;border:2px solid #b8c4d8;border-radius:8px;font:inherit;color:#2a4a80">' + (v || "") + "</textarea>";
   else if (type === "date" || type === "dateEnd") inp = '<input type="date" id="f_' + k + '" value="' + toDate(v) + '">';
