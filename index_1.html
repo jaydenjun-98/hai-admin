@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>하이 키우기 · 관리자</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#eef6ff;color:#2a4a80}
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:#fff;border-bottom:3px solid #2a4a80;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+header .sub{font-size:13px;color:#7a8db3}
+#login{margin-left:auto}
+.badge{font-size:13px;border-radius:8px;padding:5px 10px;border:2px solid #2f9e6e;background:#dff7e9;color:#2f7e4e}
+.badge.warn{border-color:#e0457b;background:#ffe8ef;color:#c0305a}
+button{font-family:inherit;cursor:pointer}
+.btn{padding:7px 12px;border:2px solid #2a4a80;border-radius:8px;background:#fff;font-weight:700;color:#2a4a80}
+main{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px 20px;align-items:start}
+.card{background:#fff;border:3px solid #2a4a80;border-radius:10px;padding:14px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tab{padding:6px 10px;border:2px solid #2a4a80;border-radius:8px;font-size:13px;font-weight:700;background:#fff;color:#2a4a80}
+.tab.on{background:#ffe8a3}
+#search{width:100%;margin-bottom:8px}
+#list{max-height:62vh;overflow:auto}
+.row{display:flex;align-items:center;gap:10px;padding:6px;border-radius:8px;font-size:13px;border:2px solid transparent;cursor:pointer}
+.row:hover{background:#f6fbff}
+.row.sel{border-color:#e0457b;background:#fff0f5}
+.row canvas{background:#f6f0e0;border-radius:6px;flex:none}
+.row .meta{flex:1;min-width:0}.row .meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row small{color:#7a8db3}
+.st{font-size:11px;padding:2px 6px;border-radius:6px;font-weight:700;white-space:nowrap}
+.s-on{background:#dff7e9;color:#2f7e4e}.s-off{background:#eee;color:#999}.s-ovr{background:#fff0c2;color:#a8701a}
+.newbtn{margin-top:10px;width:100%;padding:8px;border:2px dashed #2a4a80;border-radius:8px;background:#f6fbff;font-weight:700;color:#2a4a80}
+.editor{display:grid;grid-template-columns:300px 1fr;gap:16px}
+.drop{border:3px dashed #7a8db3;border-radius:10px;min-height:84px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:#7a8db3;background:#f6fbff;padding:8px;text-align:center}
+.drop.over{background:#e6f3ff;border-color:#2a4a80}
+.prev{background:linear-gradient(#fff4e0,#ffe2b8);border:3px solid #2a4a80;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:8px;margin-top:10px}
+.prev canvas{image-rendering:pixelated}
+.nudge{display:grid;grid-template-columns:repeat(3,34px);gap:4px;justify-content:center;margin-top:8px}
+.nudge button{height:30px;border:2px solid #2a4a80;border-radius:6px;background:#fff;font-weight:700}
+.nudge span{font-size:11px;text-align:center;align-self:center}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 4px;color:#5a6a8a}
+input,select{width:100%;padding:7px 8px;border:2px solid #b8c4d8;border-radius:8px;font-size:14px;font-family:inherit;color:#2a4a80;background:#fff}
+input[type=color]{padding:2px;height:36px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.months{display:flex;flex-wrap:wrap;gap:4px}
+.months span{width:38px;text-align:center;padding:4px 0;border:2px solid #b8c4d8;border-radius:6px;font-size:12px;cursor:pointer;user-select:none}
+.months span.on{background:#ffe0ec;border-color:#e0457b;color:#c0305a;font-weight:700}
+.btns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.btns button{flex:1;padding:10px;border:3px solid #2a4a80;border-radius:10px;font-weight:800;font-size:14px;min-width:110px}
+.b1{background:#ffe8a3}.b2{background:#fff}.b3{background:#ffe3e3}
+.note{font-size:12px;color:#7a8db3;margin-top:6px}
+.msg{margin-top:10px;font-weight:700;color:#e0457b;min-height:18px}
+.shopprev{margin-top:12px;display:flex;align-items:center;gap:10px;font-size:12px;color:#7a8db3}
+#setup{display:none;margin:16px 20px 0;padding:14px;border:3px solid #e0457b;border-radius:10px;background:#fff}
+#setup pre{background:#f6f0e0;padding:10px;border-radius:8px;white-space:pre-wrap;font-size:12px}
+.hide{display:none!important}
+.orig{font-size:12px;color:#7a8db3;margin-top:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌱 하이 키우기 · 관리자</h1>
+  <span class="sub">상점 아이템 추가 · 수정 (저장하면 게임 상점에 바로 나와요 · 배포 필요 없음)</span>
+  <span id="login"><button class="btn" id="loginBtn">G 구글로 로그인</button></span>
+</header>
+
+<div id="setup">
+  <b>👑 처음 한 번만: 관리자 계정 등록</b>
+  <p style="font-size:13px">지금 로그인한 계정이 아직 관리자로 등록되지 않았어요. Firebase 콘솔 → Firestore → 규칙에서 <b>wordRooms 규칙 바로 아래</b>에 이걸 붙여넣고 게시해 주세요.</p>
+  <pre id="rulesText"></pre>
+  <button class="btn" id="copyRules">규칙 복사하기</button>
+</div>
+
+<nav id="nav" style="display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px 0">
+  <button class="tab on" data-sec="shop">🛍 상점</button><button class="tab" data-sec="titles">🏅 칭호</button><button class="tab" data-sec="notices">📢 새 소식</button>
+  <button class="tab" data-sec="coupons">🎫 쿠폰</button><button class="tab" data-sec="events">🎉 이벤트</button><button class="tab" data-sec="words">🔤 끝말 단어</button>
+  <button class="tab" data-sec="liar">🕵️ 라이어</button><button class="tab" data-sec="attend">📅 출석 선물</button><button class="tab" data-sec="merchant">🦝 수상한 상인</button><button class="tab" data-sec="users">👀 친구들 현황</button>
+</nav>
+<main id="shopMain">
+  <section class="card">
+    <div class="tabs"><button class="tab on" data-tab="custom">✨ 새로 만든 아이템</button><button class="tab" data-tab="base">🛍 기존 아이템 수정</button></div>
+    <input id="search" placeholder="이름으로 찾기">
+    <div id="list"></div>
+    <button class="newbtn" id="newBtn">＋ 새 아이템 만들기</button>
+  </section>
+
+  <section class="card">
+    <div id="empty" class="note" style="font-size:15px">왼쪽에서 아이템을 고르거나 ＋ 새 아이템 만들기를 눌러요.</div>
+    <div id="editor" class="editor hide">
+      <div>
+        <button id="origImgBtn" class="hide" style="margin:0 0 8px;padding:6px 10px;border:2px solid #b8c4d8;border-radius:8px;background:#fff;font:inherit;cursor:pointer">🖼 원래 그림으로 (저장해야 반영)</button>
+        <div id="dropBox" class="drop"><canvas id="upCv" width="1" height="1"></canvas><div>📁 그림(PNG) 끌어다 놓기 · 눌러서 고르기<br><small id="sizeHint">투명 배경 픽셀 그림</small></div></div>
+        <input type="file" id="file" accept="image/png,image/gif" class="hide">
+        <div id="patternBox" class="hide">
+          <label>무늬</label><select id="pattern"></select>
+          <div class="two"><div><label>바탕 색</label><input type="color" id="c1"></div><div><label>무늬 색</label><input type="color" id="c2"></div></div>
+        </div>
+        <div class="prev"><canvas id="prevCv" width="256" height="256"></canvas>
+          <div id="nudgeBox" class="nudge"><span></span><button data-d="0,-1">▲</button><span></span><button data-d="-1,0">◀</button><span id="pos">x 0<br>y 0</span><button data-d="1,0">▶</button><span></span><button data-d="0,1">▼</button><span></span></div>
+          <div id="prevNote" class="note">화살표로 하이 머리에 딱 맞게 옮겨요</div>
+        </div>
+      </div>
+      <div>
+        <label>이름</label><input id="name" maxlength="16">
+        <div class="two">
+          <div><label>종류</label><select id="slot"></select></div>
+          <div><label>상점 칸</label><select id="sub"></select></div>
+        </div>
+        <div class="three">
+          <div><label>💰 가격 (코인)</label><input id="price" type="number" min="0" step="10"></div>
+          <div><label>📏 필요한 키</label><select id="level"></select></div>
+          <div><label>👨‍👩‍👧 필요한 세대</label><select id="gen"></select></div>
+        </div>
+        <label id="hoodRow" class="hide" style="display:flex;align-items:center;gap:8px;font-weight:700;color:#2a4a80"><input type="checkbox" id="hood" style="width:auto"> 🐸 머리까지 덮는 옷 (입으면 모자 · 네일을 숨겨요)</label>
+        <label>📅 한정 판매 (고르면 그 달에만 상점에 나와요 · 안 고르면 항상)</label>
+        <div class="months" id="months"></div>
+        <label>🗓 공개 날짜 · 시간 (비워 두면 올리자마자 바로 · 정하면 그때 상점에 나와요)</label>
+        <div style="display:flex;gap:8px;align-items:center"><input type="datetime-local" id="release" style="flex:1"><button type="button" id="releaseClear" style="padding:6px 10px;border:2px solid #b8c4d8;border-radius:8px;background:#fff;font:inherit;cursor:pointer">바로 공개</button></div>
+        <div class="shopprev"><span>상점에서 보이는 모습 →</span><canvas id="cellCv" width="138" height="108"></canvas></div>
+        <div id="origBox" class="orig hide"></div>
+        <div class="btns">
+          <button class="b1" id="saveBtn">🛍 상점에 올리기</button>
+          <button class="b2" id="hideBtn">🙈 숨기기</button>
+          <button class="b3" id="delBtn">🗑 삭제</button>
+        </div>
+        <div class="note" id="btnNote">※ 이미 산 사람은 숨기거나 삭제해도 '내 아이템'에 그대로 남아요</div>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+  </section>
+</main>
+<main id="opsMain" class="hide">
+  <section class="card"><div id="opsTitle" style="font-weight:800;margin-bottom:8px"></div><div id="opsList"></div><button class="newbtn" id="opsNew">＋ 새로 만들기</button></section>
+  <section class="card"><div id="opsHelp" class="note" style="font-size:13px;margin-bottom:6px"></div><div id="opsForm"></div>
+    <div class="btns" id="opsBtns"><button class="b1" id="opsSave">💾 저장</button><button class="b2" id="opsHide">🙈 숨기기</button><button class="b3" id="opsDel">🗑 삭제</button></div>
+    <div class="msg" id="opsMsg"></div></section>
+</main>
+
+<script>
+// ---------- 설정 ----------
+const GAME_URL = (location.protocol === "file:" || location.hostname === "localhost") ? "../hai-kiugi/" : "https://haifi-room.netlify.app/";
+const FB_VER = "10.14.1";
+const firebaseConfig = {
+  apiKey: "AIzaSyBegEmP9mGE9Q8sDscJ2SvYW6RkylssPl8",
+  authDomain: "haifi-room.firebaseapp.com",
+  projectId: "haifi-room",
+  storageBucket: "haifi-room.firebasestorage.app",
+  messagingSenderId: "243660189970",
+  appId: "1:243660189970:web:b3c61cb9db8642b66703cb",
+};
+const HEIGHT_STEPS = { 1: 50, 2: 52, 3: 55, 4: 58, 5: 62, 6: 67, 7: 73, 8: 80, 9: 88, 10: 100 };
+const SLOTS = {
+  head: { name: "👒 모자 (머리)", wear: true, tab: "옷", max: [64, 64] },
+  face: { name: "😎 얼굴 (안경 · 볼터치)", wear: true, tab: "옷", max: [64, 64] },
+  body: { name: "👕 몸 (옷)", wear: true, tab: "옷", max: [64, 64] },
+  back: { name: "🧣 등 (망토 · 날개)", wear: true, tab: "옷", max: [96, 80] },
+  hand: { name: "✋ 손 (풍선 · 마법봉)", wear: true, tab: "옷", max: [64, 64] },
+  feet: { name: "🧦 발 (양말 · 신발)", wear: true, tab: "옷", max: [64, 64] },
+  nail: { name: "💅 손톱", wear: true, tab: "옷", max: [64, 64] },
+  floor: { name: "🛋 바닥 가구", tab: "가구", max: [80, 64], subs: ["furni", "doll", "pet"] },
+  wall: { name: "🖼 벽 장식", tab: "가구", max: [40, 32], subs: ["furni", "frame"] },
+  rug: { name: "🟣 러그", tab: "가구", max: [90, 16], subs: ["rug"] },
+  sticker: { name: "⭐ 스티커", tab: "가구", max: [24, 24], subs: ["sticker"] },
+  wallpaper: { name: "🧱 벽지 (색 · 무늬)", tab: "가구", pattern: ["stripe", "dots", "check", "hearts", "stars", "polka", "cloud", "rainbow", "berry", "snowflake"], subs: ["wallpaper"] },
+  floorTile: { name: "🟫 바닥 (색 · 무늬)", tab: "가구", pattern: ["wood", "checker", "tile"], subs: ["floor"] },
+};
+const SUB_NAMES = { furni: "가구", doll: "인형", pet: "동물", frame: "액자", rug: "러그", sticker: "스티커", wallpaper: "벽지", floor: "바닥" };
+const PATTERN_NAMES = { stripe: "줄무늬", dots: "물방울", check: "체크", hearts: "하트", stars: "별", polka: "큰 땡땡이", cloud: "구름", rainbow: "무지개 줄무늬", berry: "딸기", snowflake: "눈송이", wood: "원목", checker: "체크무늬", tile: "타일" };
+const $ = (id) => document.getElementById(id);
+const toLocalDT = (ms) => (ms ? new Date(ms - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "");
+const fmtRelease = (ms) => { const d = new Date(ms); return (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
+const px = (c) => { const g = c.getContext("2d"); g.imageSmoothingEnabled = false; return g; };
+
+let db, auth, user = null, isAdmin = false;
+let tab = "custom", custom = {}, overrides = {}, sel = null; // sel: { kind: "custom"|"base", id, data }
+
+function loadScript(src) {
+  return new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => fail(new Error(src)); document.head.appendChild(s); });
+}
+function say(t, ok) { $("msg").textContent = t; $("msg").style.color = ok ? "#2f9e6e" : "#e0457b"; }
+
+// ---------- 시작 ----------
+(async function boot() {
+  const fb = "https://www.gstatic.com/firebasejs/" + FB_VER + "/";
+  try {
+    await loadScript(fb + "firebase-app-compat.js");
+    await loadScript(fb + "firebase-auth-compat.js");
+    await loadScript(fb + "firebase-firestore-compat.js");
+    for (const f of ["sprites.js", "item-art.js", "items.js", "room-art.js", "data/liar.js"]) await loadScript(GAME_URL + "js/" + f);
+    // 선물 · 상인 · 발굴 옷도 보이게 (못 받아도 괜찮아요)
+    for (const f of ["nail-art.js", "gen2.js", "gameseeds.js", "faideco.js", "yard.js", "merchant.js", "merchant-items.js"]) { try { await loadScript(GAME_URL + "js/" + f); } catch (e) { /* 괜찮아요 */ } }
+  } catch (e) { $("empty").textContent = "필요한 파일을 못 받았어요: " + e.message; return; }
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth(); db = firebase.firestore();
+  fillSelects();
+  auth.onAuthStateChanged(async (u) => { user = u && !u.isAnonymous ? u : null; await afterLogin(); });
+  $("loginBtn").onclick = doLogin;
+  await loadData();
+})();
+
+async function afterLogin() {
+  if (!user) { $("login").innerHTML = '<button class="btn" id="loginBtn">G 구글로 로그인</button>'; $("loginBtn").onclick = doLogin; return; }
+  // 관리자인지: 쓰기 시험 (테스트 문서)
+  try { await db.collection("shopOverrides").doc("_ping").set({ at: Date.now(), by: user.uid }); isAdmin = true; } catch (e) { isAdmin = false; }
+  $("login").innerHTML = isAdmin
+    ? '<span class="badge">✓ ' + (user.displayName || user.email) + ' · 관리자</span>'
+    : '<span class="badge warn">⚠ ' + (user.email || "") + ' · 아직 관리자 아님</span>';
+  $("setup").style.display = isAdmin ? "none" : "block";
+  $("rulesText").textContent = rulesFor(user.uid);
+}
+function doLogin() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => alert("로그인 실패: " + e.code)); }
+function rulesFor(uid) {
+  return "    // 🛍 관리자 상점 (누구나 읽기 · 관리자만 쓰기)\n" +
+    "    match /shopItems/{id} {\n      allow read: if true;\n      allow write: if request.auth != null && request.auth.uid == \"" + uid + "\";\n    }\n" +
+    "    match /shopOverrides/{id} {\n      allow read: if true;\n      allow write: if request.auth != null && request.auth.uid == \"" + uid + "\";\n    }\n" +
+    "    // 🏅 칭호 · 📢 소식 · 🎫 쿠폰 · 🎉 이벤트 · 🔤 단어 · 🕵️ 라이어 · 📅 출석 (누구나 읽기 · 관리자만 쓰기)\n" +
+    "    match /{c}/{id} {\n      allow read: if c in ['titleRules','notices','coupons','events','wordDict','liarTopics','attendConfig','merchantConfig'];\n      allow write: if c in ['titleRules','notices','coupons','events','wordDict','liarTopics','attendConfig','merchantConfig'] && request.auth != null && request.auth.uid == \"" + uid + "\";\n    }";
+}
+$("copyRules").onclick = () => navigator.clipboard.writeText($("rulesText").textContent).then(() => alert("복사했어요!"));
+
+async function loadData() {
+  try {
+    const [a, b] = await Promise.all([db.collection("shopItems").get(), db.collection("shopOverrides").get()]);
+    custom = {}; overrides = {};
+    a.docs.forEach((d) => { custom[d.id] = d.data(); });
+    b.docs.forEach((d) => { if (d.id !== "_ping") overrides[d.id] = d.data(); });
+  } catch (e) { say("목록을 못 불러왔어요 (규칙을 확인해 주세요)"); }
+  renderList();
+}
+
+// ---------- 선택 상자 채우기 ----------
+function fillSelects() {
+  $("slot").innerHTML = Object.keys(SLOTS).map((k) => '<option value="' + k + '">' + SLOTS[k].name + "</option>").join("");
+  $("level").innerHTML = Object.keys(HEIGHT_STEPS).map((l) => '<option value="' + l + '">' + HEIGHT_STEPS[l] + "cm부터</option>").join("");
+  $("gen").innerHTML = [1, 2, 3, 4, 5].map((g) => '<option value="' + g + '">' + (g === 1 ? "누구나 (1대)" : g + "대 하이부터") + "</option>").join("");
+  $("months").innerHTML = Array.from({ length: 12 }, (_, i) => '<span data-m="' + (i + 1) + '">' + (i + 1) + "월</span>").join("");
+  $("months").onclick = (e) => { const m = e.target.dataset.m; if (!m) return; e.target.classList.toggle("on"); readForm(); };
+}
+function fillSubs(slot, cur) {
+  const subs = (SLOTS[slot] && SLOTS[slot].subs) || [];
+  $("sub").innerHTML = subs.length ? subs.map((s) => '<option value="' + s + '">' + SUB_NAMES[s] + "</option>").join("") : '<option value="">' + ((SLOTS[slot] || {}).tab || "") + "</option>";
+  $("sub").disabled = subs.length <= 1;
+  if (cur && subs.includes(cur)) $("sub").value = cur;
+  const pat = SLOTS[slot] && SLOTS[slot].pattern;
+  $("patternBox").classList.toggle("hide", !pat);
+  $("dropBox").classList.toggle("hide", !!pat);
+  if (pat) $("pattern").innerHTML = pat.map((p) => '<option value="' + p + '">' + PATTERN_NAMES[p] + "</option>").join("");
+  $("nudgeBox").classList.toggle("hide", !(SLOTS[slot] && SLOTS[slot].wear));
+  $("hoodRow").classList.toggle("hide", slot !== "body");
+  $("prevNote").textContent = SLOTS[slot] && SLOTS[slot].wear ? "화살표로 하이 머리에 딱 맞게 옮겨요" : "방에 놓았을 때 모습이에요";
+  const m = SLOTS[slot] && SLOTS[slot].max;
+  $("sizeHint").textContent = m ? "투명 배경 픽셀 그림 · 최대 " + m[0] + "×" + m[1] : "";
+}
+
+// ---------- 목록 ----------
+document.querySelectorAll(".tab").forEach((b) => (b.onclick = () => {
+  tab = b.dataset.tab; document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === b));
+  $("newBtn").classList.toggle("hide", tab !== "custom"); renderList();
+}));
+$("search").oninput = renderList;
+const isWearSlot = (slot) => !!(SLOTS[slot] && SLOTS[slot].wear);
+function baseItems() { return (typeof ITEMS !== "undefined" ? ITEMS : []).filter((it) => !it.custom && it.slot !== "consumable" && (it.price > 0 || (isWearSlot(it.slot) && typeof ITEM_SPRITES !== "undefined" && ITEM_SPRITES[it.id]))); }
+function origSpr(id) { const sp = typeof ITEM_SPRITES !== "undefined" && ITEM_SPRITES[id]; return sp ? { x: sp.x || 0, y: sp.y || 0, img: sp.img || (sp.frames && sp.frames[0].img) } : null; }
+function renderList() {
+  const q = $("search").value.trim();
+  let rows = [];
+  if (tab === "custom") {
+    rows = Object.keys(custom).filter((id) => !custom[id].deleted).map((id) => ({ kind: "custom", id, d: custom[id] }))
+      .sort((a, b) => (b.d.updatedAt || 0) - (a.d.updatedAt || 0));
+  } else {
+    rows = baseItems().map((it) => ({ kind: "base", id: it.id, d: it }));
+  }
+  if (q) rows = rows.filter((r) => (r.d.name || "").includes(q));
+  $("list").innerHTML = rows.map((r, i) => {
+    const o = r.kind === "base" ? overrides[r.id] : null;
+    const d = o ? Object.assign({}, r.d, o) : r.d;
+    const st = r.kind === "custom" ? (d.hidden ? '<span class="st s-off">숨김</span>' : d.releaseAt > Date.now() ? '<span class="st s-ovr">🗓 ' + fmtRelease(d.releaseAt) + ' 공개</span>' : '<span class="st s-on">판매 중</span>') : (o ? '<span class="st s-ovr">수정됨</span>' : "");
+    const g = (d.gen || 1) > 1 ? " · " + d.gen + "대부터" : "";
+    return '<div class="row' + (sel && sel.id === r.id ? " sel" : "") + '" data-i="' + i + '"><canvas width="40" height="40"></canvas><div class="meta"><b>' + (d.name || "(이름 없음)") +
+      "</b><small>" + (r.kind === "base" && !(r.d.price > 0) ? "🎁 선물·상인 · " : "") + "💰" + (d.price || 0) + " · 📏" + HEIGHT_STEPS[d.level || 1] + "cm" + g + (d.hidden && r.kind === "base" ? " · 숨김" : "") + "</small></div>" + st + "</div>";
+  }).join("") || '<div class="note">아직 없어요</div>';
+  [...$("list").children].forEach((el) => {
+    const r = rows[+el.dataset.i]; if (!r) return;
+    drawIcon(el.querySelector("canvas"), r);
+    el.onclick = () => openItem(r.kind, r.id);
+  });
+}
+function iconOf(r) {
+  if (r.kind === "custom") return r.d._img || null;
+  const it = r.d;
+  if (overrides[it.id] && overrides[it.id]._img) return overrides[it.id]._img;
+  if (typeof ITEM_SPRITES !== "undefined" && ITEM_SPRITES[it.id]) return origSpr(it.id).img;
+  if (typeof ROOM_SPRITES !== "undefined" && ROOM_SPRITES[it.id]) return ROOM_SPRITES[it.id];
+  return null;
+}
+function drawIcon(cv, r) {
+  const g = px(cv); g.clearRect(0, 0, 40, 40);
+  const d = r.d;
+  if (d.colors) { g.fillStyle = d.colors.wall || d.colors.floor; g.fillRect(4, 4, 32, 32); g.fillStyle = d.colors.line; for (let y = 8; y < 36; y += 8) g.fillRect(4, y, 32, 2); return; }
+  const ov = r.kind === "base" && overrides[r.id];
+  if (ov && ov.png && !ov._img) { const im = new Image(); im.onload = () => { ov._img = im; drawIcon(cv, r); }; im.src = ov.png; return; }
+  if (r.kind === "custom" && d.png && !d._img) { const im = new Image(); im.onload = () => { d._img = im; drawIcon(cv, r); }; im.src = d.png; return; }
+  const img = iconOf(r); if (!img) return;
+  const s = Math.min(2, 36 / img.width, 36 / img.height);
+  g.drawImage(img, (40 - img.width * s) / 2, (40 - img.height * s) / 2, img.width * s, img.height * s);
+}
+
+// ---------- 편집 ----------
+let form = null; // 지금 편집 중인 값
+function openItem(kind, id) {
+  $("empty").classList.add("hide"); $("editor").classList.remove("hide"); say("");
+  if (kind === "custom") {
+    const d = custom[id];
+    form = { kind, id, release: d.releaseAt || 0, hood: !!d.hidesHead, name: d.name, slot: d.slot, sub: d.sub, price: d.price, level: d.level || 1, gen: d.gen || 1, season: d.season || [], png: d.png || null, x: d.x || 0, y: d.y || 0, colors: d.colors || null, hidden: !!d.hidden };
+  } else {
+    const it = baseItems().find((x) => x.id === id), o = overrides[id] || {};
+    form = { kind, id, name: it.name, slot: it.slot, price: o.price != null ? o.price : it.price, level: o.level != null ? o.level : it.level, gen: o.gen != null ? o.gen : (it.gen || 1),
+      season: o.season !== undefined ? (o.season || []) : (it.season || []), hidden: o.hidden != null ? o.hidden : false, base: it };
+    const sp = origSpr(id);
+    form.orig = sp; form.png = o.png || null;
+    form.x = o.x != null ? o.x : sp ? sp.x : 0; form.y = o.y != null ? o.y : sp ? sp.y : 0;
+  }
+  sel = { kind, id };
+  showForm(); renderList();
+}
+$("newBtn").onclick = () => {
+  if (!isAdmin) return alert("관리자 계정으로 로그인해 주세요");
+  form = { kind: "custom", id: "c_" + Date.now().toString(36), name: "", slot: "head", sub: "", price: 100, level: 1, gen: 1, season: [], png: null, x: 16, y: 0, colors: null, hidden: false, isNew: true };
+  sel = { kind: "custom", id: form.id };
+  $("empty").classList.add("hide"); $("editor").classList.remove("hide"); say("");
+  showForm(); renderList();
+};
+function showForm() {
+  const base = form.kind === "base";
+  $("name").value = form.name || ""; $("name").disabled = base;
+  $("slot").value = form.slot in SLOTS ? form.slot : "head"; $("slot").disabled = base;
+  fillSubs($("slot").value, form.sub);
+  if (base) {
+    $("sub").disabled = true; $("patternBox").classList.add("hide");
+    const canArt = !!(form.orig || ROOM_SPRITES[form.id]) && !(SLOTS[form.slot] && SLOTS[form.slot].pattern);
+    $("dropBox").classList.toggle("hide", !canArt);
+    $("nudgeBox").classList.toggle("hide", !(isWearSlot(form.slot) && form.orig));
+    $("origImgBtn").classList.toggle("hide", !form.png);
+  } else $("origImgBtn").classList.add("hide");
+  if (!base && SLOTS[form.slot] && SLOTS[form.slot].pattern) {
+    const c = form.colors || { wall: "#fff4e0", floor: "#e8c39e", line: "#ffd3e3", pattern: SLOTS[form.slot].pattern[0] };
+    $("pattern").value = c.pattern; $("c1").value = c.wall || c.floor; $("c2").value = c.line;
+  }
+  $("hood").checked = !!form.hood;
+  $("release").value = toLocalDT(form.release); $("release").disabled = form.kind === "base"; $("releaseClear").disabled = form.kind === "base";
+  if (base) $("hoodRow").classList.add("hide");
+  $("price").value = form.price; $("level").value = form.level; $("gen").value = form.gen || 1;
+  [...$("months").children].forEach((s) => s.classList.toggle("on", (form.season || []).includes(+s.dataset.m)));
+  $("saveBtn").textContent = base ? "💾 바꾼 값 저장" : "🛍 상점에 올리기";
+  $("hideBtn").textContent = form.hidden ? "👀 다시 보이기" : "🙈 숨기기";
+  $("delBtn").textContent = base ? "↩ 원래대로" : "🗑 삭제";
+  $("btnNote").textContent = base ? "※ 그림 바꾸기 · 위치 옮기기 · 가격 · 키 · 세대 · 판매 달 · 숨기기를 바꿀 수 있어요 (이름은 그대로). 이미 산 사람한테도 바로 바뀐 그림으로 보여요" : "※ 이미 산 사람은 숨기거나 삭제해도 '내 아이템'에 그대로 남아요";
+  const o = base && form.base;
+  $("origBox").classList.toggle("hide", !o);
+  if (o) $("origBox").textContent = "원래 값: 💰" + o.price + " · 📏" + HEIGHT_STEPS[o.level] + "cm" + (o.season ? " · " + o.season.join(",") + "월 한정" : "");
+  loadUpImage(); drawPreview();
+}
+function readForm() {
+  if (!form) return;
+  if (form.kind === "custom") {
+    form.name = $("name").value.trim(); form.slot = $("slot").value; form.sub = $("sub").value || "";
+    const S = SLOTS[form.slot];
+    if (S.pattern) form.colors = { [form.slot === "wallpaper" ? "wall" : "floor"]: $("c1").value, line: $("c2").value, pattern: $("pattern").value };
+    else form.colors = null;
+  }
+  form.price = Math.max(0, parseInt($("price").value, 10) || 0);
+  form.level = +$("level").value; form.gen = +$("gen").value;
+  form.season = [...$("months").children].filter((s) => s.classList.contains("on")).map((s) => +s.dataset.m);
+  if (form.kind === "custom") form.release = $("release").value ? new Date($("release").value).getTime() : 0;
+  drawPreview();
+}
+$("releaseClear").onclick = () => { $("release").value = ""; readForm(); };
+["name", "price", "level", "gen", "sub", "pattern", "c1", "c2", "release"].forEach((id) => { $(id).oninput = readForm; $(id).onchange = readForm; });
+$("slot").onchange = () => { fillSubs($("slot").value); if (SLOTS[$("slot").value].pattern) { $("c1").value = "#fff4e0"; $("c2").value = "#ffd3e3"; } readForm(); };
+
+// 그림 올리기
+let upImg = null;
+function loadUpImage() {
+  upImg = null;
+  if (form.png) { const im = new Image(); im.onload = () => { upImg = im; drawPreview(); }; im.src = form.png; }
+  else drawPreview();
+}
+$("dropBox").onclick = () => $("file").click();
+$("file").onchange = (e) => e.target.files[0] && takeFile(e.target.files[0]);
+$("dropBox").ondragover = (e) => { e.preventDefault(); $("dropBox").classList.add("over"); };
+$("dropBox").ondragleave = () => $("dropBox").classList.remove("over");
+$("dropBox").ondrop = (e) => { e.preventDefault(); $("dropBox").classList.remove("over"); e.dataTransfer.files[0] && takeFile(e.dataTransfer.files[0]); };
+function takeFile(f) {
+  const r = new FileReader();
+  r.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      // 날개 · 망토 크기(96×72)는 종류를 안 골랐어도 받아서 '등'으로 바꿔 줘요
+      if (form.kind === "custom" && im.width === 96 && im.height === 72 && form.slot !== "back") { $("slot").value = "back"; fillSubs("back"); readForm(); }
+      const m = (SLOTS[form.slot] && SLOTS[form.slot].max) || [80, 64];
+      if (im.width > m[0] || im.height > m[1]) return say("그림이 너무 커요 (" + im.width + "×" + im.height + ") · 최대 " + m[0] + "×" + m[1]);
+      // 깔끔하게 PNG로 다시 저장
+      const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; c.getContext("2d").drawImage(im, 0, 0);
+      form.png = c.toDataURL("image/png");
+      if (form.kind === "base") $("origImgBtn").classList.remove("hide");
+      if (SLOTS[form.slot].wear && im.width === 64 && im.height === 64) { form.x = 0; form.y = 0; }
+      else if (SLOTS[form.slot].wear && im.width === 96 && im.height === 72) { form.x = -16; form.y = -8; } // 하이 둘레 여백 포함 그림 (망토 · 날개) // 하이 원본 크기로 그린 옷은 딱 겹치게
+      else if (form.isNew && SLOTS[form.slot].wear) { form.x = Math.round((64 - im.width) / 2); form.y = form.slot === "head" ? 2 : form.slot === "face" ? 24 : 34; }
+      upImg = im; say(""); drawPreview();
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(f);
+}
+document.querySelectorAll("#nudgeBox button").forEach((b) => (b.onclick = () => { const [dx, dy] = b.dataset.d.split(",").map(Number); form.x += dx; form.y += dy; drawPreview(); }));
+
+$("origImgBtn").onclick = () => { form.png = null; upImg = null; if (form.orig) { form.x = form.orig.x; form.y = form.orig.y; } $("origImgBtn").classList.add("hide"); drawPreview(); say("원래 그림 · 위치로 돌렸어요. 💾 저장을 눌러야 게임에 반영돼요"); };
+// 미리보기
+function drawPreview() {
+  if (!form) return;
+  const cv = $("prevCv"), g = px(cv); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 256, 256);
+  const base = form.kind === "base", S = SLOTS[form.slot] || {};
+  const img = base ? (upImg || (form.orig ? form.orig.img : iconOf({ kind: "base", d: form.base }))) : upImg;
+  $("upCv").width = upImg ? upImg.width : 1; $("upCv").height = upImg ? upImg.height : 1;
+  if (upImg) px($("upCv")).drawImage(upImg, 0, 0);
+  if (S.wear) {
+    if (form.slot === "back") { g.scale(2.5, 2.5); g.translate(19, 14); } // 날개 · 망토는 넓게
+    else { g.scale(3, 3); g.translate(10, 10); } // 망토 · 귀마개처럼 하이 밖으로 나온 부분도 보이게
+    if (img && form.slot === "back") g.drawImage(img, form.x, form.y);
+    if (typeof HAI_SPRITES !== "undefined") g.drawImage(HAI_SPRITES.happy || HAI_SPRITES.basic, 0, 0);
+    if (img && form.slot !== "back") g.drawImage(img, form.x, form.y);
+    if (base && form.orig && (form.x !== form.orig.x || form.y !== form.orig.y)) $("pos").innerHTML = "x " + form.x + "<br>y " + form.y + "<br><small>(원래 " + form.orig.x + "," + form.orig.y + ")</small>"; else
+    $("pos").innerHTML = "x " + form.x + "<br>y " + form.y;
+  } else {
+    // 작은 방
+    g.scale(2, 2);
+    const wall = form.slot === "wallpaper" && form.colors ? form.colors : { wall: "#fff4e0", line: "#ffe2b8" };
+    const fl = form.slot === "floorTile" && form.colors ? form.colors : { floor: "#e8c39e", line: "#d9ad85" };
+    g.fillStyle = wall.wall; g.fillRect(0, 0, 128, 88);
+    g.fillStyle = wall.line; for (let x = 4; x < 128; x += 10) for (let y = 4; y < 88; y += 10) g.fillRect(x, y, 2, 2);
+    g.fillStyle = fl.floor; g.fillRect(0, 88, 128, 40);
+    g.fillStyle = fl.line; for (let y = 92; y < 128; y += 8) g.fillRect(0, y, 128, 1);
+    if (img) {
+      if (form.slot === "wall" || form.slot === "sticker") g.drawImage(img, Math.round(64 - img.width / 2), Math.round(46 - img.height / 2));
+      else if (form.slot === "rug") g.drawImage(img, Math.round(64 - img.width / 2), 108);
+      else g.drawImage(img, Math.round(64 - img.width / 2), 112 - img.height);
+    }
+  }
+  drawCell(img);
+}
+function drawCell(img) {
+  const c = $("cellCv"), g = px(c); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.scale(3, 3);
+  g.fillStyle = "#2a4a80"; g.fillRect(0, 0, 46, 36); g.fillStyle = "#fff"; g.fillRect(1, 1, 44, 34);
+  if (form.colors) { g.fillStyle = form.colors.wall || form.colors.floor; g.fillRect(9, 5, 28, 20); g.fillStyle = form.colors.line; for (let y = 9; y < 25; y += 6) g.fillRect(9, y, 28, 2); }
+  else if (img) { const s = Math.min(1, 42 / img.width, 24 / img.height); g.drawImage(img, Math.round((46 - img.width * s) / 2), Math.round(3 + (24 - img.height * s) / 2), img.width * s, img.height * s); }
+  g.fillStyle = "#ffd34d"; g.fillRect(10, 27, 6, 6);
+  g.fillStyle = "#2a4a80"; g.font = "bold 7px sans-serif"; g.fillText(String(form.price), 18, 32.5);
+  if (form.season && form.season.length) { g.fillStyle = "#e2574c"; g.fillRect(1, 1, 15, 8); g.fillStyle = "#fff"; g.font = "bold 5px sans-serif"; g.fillText("한정", 3, 7); }
+}
+
+// ---------- 저장 · 숨기기 · 삭제 ----------
+async function saveCustom(extra) {
+  readForm();
+  const S = SLOTS[form.slot];
+  if (!form.name) return say("이름을 써 주세요");
+  if (!S.pattern && !form.png) return say("그림을 올려 주세요");
+  const doc = { name: form.name, slot: form.slot, sub: form.sub || (S.subs ? S.subs[0] : ""), price: form.price, level: form.level, gen: form.gen, season: form.season,
+    hidden: !!form.hidden, deleted: false, updatedAt: Date.now(), releaseAt: form.release || 0,
+    createdAt: (custom[form.id] && custom[form.id].createdAt) || Date.now() }; // 처음 올린 시각 → 게임 상점에 하루 동안 NEW
+  if (S.pattern) doc.colors = form.colors; else { doc.png = form.png; doc.x = form.x; doc.y = form.y; }
+  doc.hidesHead = form.slot === "body" && $("hood").checked;
+  Object.assign(doc, extra || {});
+  try {
+    await db.collection("shopItems").doc(form.id).set(doc);
+    custom[form.id] = doc; form.isNew = false; Object.assign(form, extra || {});
+    say(doc.deleted ? "삭제했어요" : doc.hidden ? "숨겼어요 (상점에 안 나와요)" : doc.releaseAt > Date.now() ? "🗓 예약했어요! " + fmtRelease(doc.releaseAt) + "에 상점에 나와요 (그때부터 하루 동안 NEW)" : "상점에 올렸어요! 게임을 켜면 바로 보여요 🎉", true);
+    showForm(); renderList();
+  } catch (e) { say("저장이 안 됐어요: " + (e.code || e.message) + (isAdmin ? "" : " · 관리자 등록이 필요해요")); }
+}
+async function saveOverride(extra) {
+  readForm();
+  const o = Object.assign({ price: form.price, level: form.level, gen: form.gen, season: form.season, hidden: !!form.hidden, updatedAt: Date.now() }, extra || {});
+  if (form.png) o.png = form.png;
+  if (isWearSlot(form.slot) && form.orig && (form.x !== form.orig.x || form.y !== form.orig.y || form.png)) { o.x = form.x; o.y = form.y; }
+  try { await db.collection("shopOverrides").doc(form.id).set(o); overrides[form.id] = o; Object.assign(form, extra || {}); say("저장했어요! 게임 상점에 바로 반영돼요", true); showForm(); renderList(); }
+  catch (e) { say("저장이 안 됐어요: " + (e.code || e.message)); }
+}
+$("saveBtn").onclick = () => form.kind === "custom" ? saveCustom({ hidden: false }) : saveOverride();
+$("hideBtn").onclick = () => form.kind === "custom" ? saveCustom({ hidden: !form.hidden }) : saveOverride({ hidden: !form.hidden });
+$("delBtn").onclick = async () => {
+  if (form.kind === "custom") {
+    if (form.isNew) { form = null; $("editor").classList.add("hide"); $("empty").classList.remove("hide"); return; }
+    if (!confirm("'" + form.name + "'을(를) 삭제할까요?\n(이미 산 사람은 그대로 가지고 있어요)")) return;
+    await saveCustom({ hidden: true, deleted: true });
+    form = null; sel = null; $("editor").classList.add("hide"); $("empty").classList.remove("hide"); renderList();
+  } else {
+    if (!overrides[form.id]) return say("바꾼 값이 없어요");
+    if (!confirm("원래 값으로 되돌릴까요?")) return;
+    try { await db.collection("shopOverrides").doc(form.id).delete(); delete overrides[form.id]; openItem("base", form.id); say("원래대로 돌렸어요", true); }
+    catch (e) { say("안 됐어요: " + (e.code || e.message)); }
+  }
+};
+</script>
+
+<script>
+// ================= 운영 메뉴 (칭호 · 소식 · 쿠폰 · 이벤트 · 단어 · 라이어 · 출석 · 현황) =================
+const STATS = {
+  wordWin1: "끝말잇기 · 아기 하이 이긴 횟수", wordWin2: "끝말잇기 · 똑똑 하이 이긴 횟수", wordWin3: "끝말잇기 · 박사 하이 이긴 횟수", wordChain: "끝말잇기 · 한 판 최고 이어간 단어",
+  woWins: "놀이방 · 끝말잇기 1등 횟수", liarWins: "놀이방 · 라이어 승리 횟수", mafiaWins: "놀이방 · 마피아 승리 횟수", playroomGames: "놀이방 · 라이어+마피아 판 수",
+  anchovyBest: "멸치잡기 · 최고 점수", growrunBest: "쑥쑥런 · 최고 점수", stairsBest: "쑥쑥계단 · 최고 계단",
+  play_anchovy: "멸치잡기 · 플레이 횟수", play_beat: "쑥쑥비트 · 플레이 횟수", play_growrun: "쑥쑥런 · 플레이 횟수", play_stairs: "쑥쑥계단 · 플레이 횟수", play_word: "끝말잇기(하이랑) · 플레이 횟수",
+  height: "하이 · 키 (cm)", gen: "하이 · 세대", attend: "하이 · 출석 일수", secrets: "하이 · 찾은 비밀 수", dex: "하이 · 바다 도감 종류",
+  friends: "친구 · 친구 수", visits: "친구 · 친구 집 놀러 간 횟수", giftsSent: "친구 · 선물 보낸 횟수", shoutsUsed: "친구 · 확성기 쓴 횟수",
+  ev_snack: "돌보기 · 간식 준 횟수", ev_pet: "돌보기 · 쓰다듬은 횟수", ev_exercise: "돌보기 · 체조 횟수", ev_harvest: "돌보기 · 화단 수확 횟수", ev_highfive: "돌보기 · 하이파이브 횟수", digs: "마당 · 땅 판 횟수", digDex: "마당 · 발굴 도감 종류", merchantTrades: "마당 · 상인과 거래한 횟수", bugs: "방 · 바퀴벌레 쫓은 횟수", yardEvents: "마당 · 이벤트 성공 횟수", snowman: "마당 · 눈사람 만든 횟수", moonRabbit: "마당 · 달토끼 만난 횟수", flowersSent: "광장 · 꽃 선물한 횟수", dances: "광장 · 춤춘 횟수", groupDance: "광장 · 떼춤 성공 횟수", plazaYoga: "광장 · 아침 요가 참여 횟수", plazaParty: "광장 · 저녁 댄스파티 참여 횟수", plazaFire: "광장 · 불꽃놀이 참여 횟수", omokWins: "광장 · 오목 이긴 횟수", bingoWins: "광장 · 빙고 1등 횟수", bingoPlays: "광장 · 빙고 참가 횟수", eggs: "마당 · 주운 달걀 수", cloudDex: "옥상 · 구름 도감 종류", starDex: "옥상 · 별자리 도감 종류", laundry: "옥상 · 빨래 말린 횟수", lessons: "학원 · 수업 들은 횟수", memos: "친구 · 다락방 메모 붙인 횟수", eggDex: "마당 · 달걀 도감 종류", gacha: "광장 · 캡슐 뽑기 횟수", figures: "광장 · 모은 피규어 종류", jobs: "알바 · 전체 알바 횟수", job_cafe: "알바 · 카페 알바 횟수", job_flower: "알바 · 꽃집 알바 횟수", job_post: "알바 · 우체국 알바 횟수",
+};
+const DAY = 86400000;
+const toDate = (ms) => (ms ? new Date(ms - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10) : "");
+const fromDate = (v, end) => (v ? new Date(v + (end ? "T23:59:59" : "T00:00:00")).getTime() : 0);
+const SECS = {
+  titles: { coll: "titleRules", name: "🏅 조건 칭호", help: "조건을 채우면 게임에서 바로 칭호를 받아요. 이미 받은 칭호는 여기서 지워도 그대로 남아요.",
+    fields: [["title", "칭호 이름", "text"], ["stat", "조건", "stat"], ["n", "몇 이상 (세트면 안 써도 돼요)", "number"], ["items", "🎁 세트 아이템 (조건이 '세트'일 때 · 전부 가지면 칭호)", "items"], ["coins", "보상 코인 (없으면 0)", "number"]],
+    label: (d) => "「" + (d.title || "") + "」", sub: (d) => (d.stat === "set" ? "🎁 세트 " + ((d.items || []).map(itemName).join(" · ") || "(아이템 없음)") : (STATS[d.stat] || d.stat) + " " + (d.n || 0) + " 이상") + (d.coins ? " · 코인 " + d.coins : "") },
+  notices: { coll: "notices", name: "📢 새 소식", help: "올리면 게임을 켤 때 '✨ 새 소식' 창이 한 번 떠요. 내용은 한 줄에 하나씩 (최대 9줄). 설정 → 📰 새 소식에서 다시 볼 수 있어요.",
+    fields: [["title", "제목", "text"], ["body", "내용 (한 줄에 하나씩)", "lines"]],
+    label: (d) => d.title || "(제목 없음)", sub: (d) => (d.at ? new Date(d.at).toLocaleDateString() : "") },
+  coupons: { coll: "coupons", name: "🎫 쿠폰 코드", help: "게임 설정 → 🎫 쿠폰에서 코드를 넣으면 받아요. 한 사람당 1번만. 기간을 비워 두면 언제든.", idField: "code",
+    fields: [["code", "쿠폰 코드 (영문 · 숫자)", "code"], ["coins", "코인", "number"], ["shouts", "확성기 개수", "number"], ["item", "아이템 (선택)", "item"], ["start", "시작일", "date"], ["end", "끝나는 날", "dateEnd"]],
+    label: (d, id) => id, sub: (d) => [d.coins ? "코인 " + d.coins : "", d.shouts ? "확성기 " + d.shouts : "", d.item ? "아이템 " + itemName(d.item) : "", d.end ? "~" + toDate(d.end) : ""].filter(Boolean).join(" · ") },
+  events: { coll: "events", name: "🎉 이벤트", help: "기간 동안 게임에 적용돼요. 코인 배율은 미니게임 보상에, 키 배율은 키가 크는 모든 곳에, 세일은 상점 가격에. 1 = 그대로.",
+    fields: [["name", "이벤트 이름", "text"], ["start", "시작일", "date"], ["end", "끝나는 날", "dateEnd"], ["coinX", "미니게임 코인 배율 (예: 2)", "number"], ["growX", "키 성장 배율 (예: 1.5)", "number"], ["sale", "상점 세일 % (예: 20)", "number"]],
+    label: (d) => d.name || "(이름 없음)", sub: (d) => toDate(d.start) + " ~ " + toDate(d.end) + (d.coinX > 1 ? " · 코인×" + d.coinX : "") + (d.growX > 1 ? " · 키×" + d.growX : "") + (d.sale ? " · " + d.sale + "% 세일" : "") },
+  liar: { coll: "liarTopics", name: "🕵️ 라이어 주제 · 제시어", help: "있는 주제에 단어를 더하거나 빼고, 새 주제도 만들 수 있어요. 단어는 띄어쓰기나 줄바꿈으로 구분 (한글 명사 2글자 이상). 4개 미만인 주제는 게임에서 빠져요.",
+    fields: [["topicId", "주제", "topic"], ["name", "새 주제 이름 (새 주제일 때만)", "text"], ["icon", "새 주제 아이콘 (이모지)", "text"], ["add", "더할 단어", "lines"], ["remove", "뺄 단어", "lines"]],
+    label: (d) => topicName(d.topicId) || d.name || "새 주제", sub: (d) => "+" + countW(d.add) + " · -" + countW(d.remove) },
+};
+const countW = (s) => String(s || "").split(/[\s,]+/).filter(Boolean).length;
+const itemName = (id) => ((typeof ITEMS !== "undefined" && ITEMS.find((i) => i.id === id)) || { name: id }).name;
+const topicName = (id) => ((typeof LIAR_TOPICS !== "undefined" && LIAR_TOPICS.find((t) => t.id === id)) || {}).name;
+let sec = "shop", opsData = {}, opsSel = null;
+
+document.querySelectorAll("#nav .tab").forEach((b) => (b.onclick = () => {
+  sec = b.dataset.sec;
+  document.querySelectorAll("#nav .tab").forEach((x) => x.classList.toggle("on", x === b));
+  $("shopMain").classList.toggle("hide", sec !== "shop");
+  $("opsMain").classList.toggle("hide", sec === "shop");
+  if (sec !== "shop") openSec();
+}));
+function om(t, ok) { $("opsMsg").textContent = t; $("opsMsg").style.color = ok ? "#2f9e6e" : "#e0457b"; }
+
+async function openSec() {
+  om(""); opsSel = null; $("opsForm").innerHTML = ""; $("opsBtns").classList.remove("hide"); $("opsNew").classList.remove("hide");
+  if (sec === "words" || sec === "attend" || sec === "merchant") return openSingle();
+  if (sec === "users") return openUsers();
+  const S = SECS[sec];
+  $("opsTitle").textContent = S.name; $("opsHelp").textContent = S.help;
+  try { const s = await db.collection(S.coll).get(); opsData = {}; s.docs.forEach((d) => { opsData[d.id] = d.data(); }); } catch (e) { om("못 불러왔어요 (규칙을 확인해 주세요)"); }
+  renderOpsList(); newOps();
+}
+// 게임에 원래 있는 칭호 (코드에 들어 있어서 여기선 보기만)
+const BASE_TITLES = [
+  ["🌊 바다 도감", "바다 탐험가 (10종) · 바다 박사 (18종) · 바다 친구 (20종) · 바다 수호자 (25종) · 바다의 전설 (30종) · 바다 박물관장 (40종) · 바다의 왕 하이 (50종)"],
+  ["🤫 비밀 쪽지", "따끔 마스터 (해파리 한 판 5번) · 용감한 하이 (쑥쑥비트 풀콤보) · 쌩쌩이 왕 (꾸욱 노트 10번)"],
+  ["🎲 놀이방 씨앗 (꽃 10송이)", "끝말 장인 · 명탐정 · 마피아 사냥꾼"],
+  ["🪜 쑥쑥계단", "우주 탐험가 (500계단) · 달에 간 하이 (1000계단)"],
+  ["🏠 꾸미기 세트", "딸기 공주 · 구름 위 하이 · 상큼 레몬"],
+  ["👨‍👩‍👧 하이 세대", "하이 가문 (5대) · 하이 왕조 (10대)"],
+  ["그 밖", "100일 단짝 (출석 100일) · 파이의 단짝 (파이 ♥100) · 메리 하이마스 (12월 25일) · 땅속까지 뒤지는 하이 (발굴 도감 30종) · 상인의 단골 하이 (단골 도장 10개)"],
+];
+function baseTitlesHtml() {
+  return '<div style="margin-top:14px;padding-top:10px;border-top:2px dashed #b8c4d8"><b style="font-size:13px">📜 원래 있는 칭호 (29개 · 보기만)</b>' +
+    BASE_TITLES.map(([g, t]) => '<div style="font-size:12px;margin-top:6px"><b>' + g + '</b><br><span style="color:#5a6a8a">' + t + "</span></div>").join("") + "</div>";
+}
+function renderOpsList() {
+  const S = SECS[sec];
+  const ids = Object.keys(opsData).filter((id) => !opsData[id].deleted).sort((a, b) => (opsData[b].at || 0) - (opsData[a].at || 0));
+  $("opsList").innerHTML = ids.map((id) => { const d = opsData[id];
+    return '<div class="row' + (opsSel === id ? " sel" : "") + '" data-id="' + id + '"><div class="meta"><b>' + S.label(d, id) + "</b><small>" + S.sub(d, id) + "</small></div>" + (d.hidden ? '<span class="st s-off">숨김</span>' : '<span class="st s-on">켜짐</span>') + "</div>"; }).join("") || '<div class="note">아직 없어요</div>';
+  if (sec === "titles") $("opsList").innerHTML = '<div class="note" style="font-weight:700">✨ 관리자가 만든 칭호</div>' + $("opsList").innerHTML + baseTitlesHtml();
+  [...$("opsList").querySelectorAll(".row")].forEach((el) => (el.onclick = () => { opsSel = el.dataset.id; fillOps(opsData[opsSel], opsSel); renderOpsList(); }));
+}
+function fieldHtml(f, v) {
+  const [k, label, type] = f; let inp;
+  if (type === "items") {
+    const sel = Array.isArray(v) ? v : [];
+    const all = setItemChoices();
+    inp = '<input id="f_items_q" placeholder="이름으로 찾기" style="margin-bottom:6px"><div id="f_items" style="max-height:180px;overflow:auto;border:2px solid #b8c4d8;border-radius:8px;padding:6px;font-size:13px">' +
+      all.map((it) => '<label data-n="' + it.name + '" style="display:flex;align-items:center;gap:6px;font-weight:400;margin:2px 0"><input type="checkbox" value="' + it.id + '" style="width:auto"' + (sel.includes(it.id) ? " checked" : "") + "> " + it.name + ' <small style="color:#8a96b0">' + it.tag + "</small></label>").join("") + "</div>";
+    return "<label>" + label + "</label>" + inp;
+  }
+  if (type === "stat") inp = '<select id="f_' + k + '">' + Object.keys(STATS).map((s) => '<option value="' + s + '"' + (v === s ? " selected" : "") + ">" + STATS[s] + "</option>").join("") + '<option value="set"' + (v === "set" ? " selected" : "") + '>🎁 세트 · 아이템 전부 모으기</option></select>';
+  else if (type === "item") inp = '<select id="f_' + k + '"><option value="">(없음)</option>' + (ITEMS || []).filter((i) => i.price > 0 || i.gift).map((i) => '<option value="' + i.id + '"' + (v === i.id ? " selected" : "") + ">" + i.name + "</option>").join("") + "</select>";
+  else if (type === "topic") inp = '<select id="f_' + k + '"><option value="">✨ 새 주제 만들기</option>' + (LIAR_TOPICS || []).map((t) => '<option value="' + t.id + '"' + (v === t.id ? " selected" : "") + ">" + (t.icon || "") + " " + t.name + " (" + t.words.length + ")</option>").join("") + "</select>";
+  else if (type === "lines") inp = '<textarea id="f_' + k + '" rows="6" style="width:100%;padding:8px;border:2px solid #b8c4d8;border-radius:8px;font:inherit;color:#2a4a80">' + (v || "") + "</textarea>";
+  else if (type === "date" || type === "dateEnd") inp = '<input type="date" id="f_' + k + '" value="' + toDate(v) + '">';
+  else inp = '<input id="f_' + k + '" type="' + (type === "number" ? "number" : "text") + '" value="' + (v == null ? "" : String(v).replace(/"/g, "&quot;")) + '">';
+  return "<label>" + label + "</label>" + inp;
+}
+// 세트에 넣을 수 있는 아이템: 관리자가 만든 것 + 게임에 원래 있는 것
+function setItemChoices() {
+  const out = Object.keys(custom || {}).filter((id) => !custom[id].deleted).map((id) => ({ id, name: custom[id].name || id, tag: "✨ 새로 만든" }));
+  for (const it of (typeof ITEMS !== "undefined" ? ITEMS : [])) if (!it.custom && it.slot !== "consumable" && !out.find((o) => o.id === it.id)) out.push({ id: it.id, name: it.name, tag: it.price > 0 ? "상점" : "선물·상인" });
+  return out;
+}
+function fillOps(d, id) {
+  const S = SECS[sec]; d = d || {};
+  $("opsForm").innerHTML = S.fields.map((f) => fieldHtml(f, f[0] === S.idField ? id : d[f[0]])).join("");
+  if ($("f_items_q")) $("f_items_q").oninput = () => { const q = $("f_items_q").value.trim(); [...$("f_items").children].forEach((l) => (l.style.display = !q || l.dataset.n.includes(q) ? "flex" : "none")); };
+  if (S.idField && id) $("f_" + S.idField).disabled = true;
+  $("opsHide").textContent = d.hidden ? "👀 다시 켜기" : "🙈 숨기기";
+}
+function newOps() { opsSel = null; fillOps({}, null); renderOpsList(); }
+$("opsNew").onclick = () => (sec === "words" || sec === "attend" || sec === "merchant" || sec === "users") ? null : newOps();
+function readOps() {
+  const S = SECS[sec], d = {};
+  for (const [k, , type] of S.fields) {
+    const el = $("f_" + k); if (!el) continue;
+    if (type === "number") d[k] = el.value === "" ? 0 : +el.value;
+    else if (type === "date") d[k] = fromDate(el.value, false);
+    else if (type === "dateEnd") d[k] = fromDate(el.value, true);
+    else if (type === "items") d[k] = [...el.querySelectorAll("input:checked")].map((c) => c.value);
+    else d[k] = el.value.trim();
+  }
+  return d;
+}
+async function saveOps(extra) {
+  const S = SECS[sec]; const d = Object.assign(readOps(), extra || {});
+  let id = opsSel;
+  if (S.idField) { id = id || String(d.code || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); delete d.code; if (!id) return om("코드를 써 주세요"); }
+  if (!id) id = sec[0] + Date.now().toString(36);
+  if (sec === "titles" && !d.title) return om("칭호 이름을 써 주세요");
+  if (sec === "titles" && d.stat === "set" && !(d.items || []).length) return om("세트 아이템을 하나 이상 골라 주세요");
+  if (sec === "notices" && !d.title) return om("제목을 써 주세요");
+  const old = opsData[id] || {};
+  d.at = old.at || Date.now(); d.updatedAt = Date.now();
+  if (d.hidden === undefined) d.hidden = !!old.hidden;
+  try { await db.collection(S.coll).doc(id).set(d); opsData[id] = d; opsSel = id; renderOpsList(); fillOps(d, id); om("저장했어요! 게임에 곧 반영돼요 (켜 둔 게임은 최대 10분)", true); }
+  catch (e) { om("저장이 안 됐어요: " + (e.code || e.message)); }
+}
+$("opsSave").onclick = () => sec === "words" || sec === "attend" || sec === "merchant" ? saveSingle() : saveOps();
+$("opsHide").onclick = () => { if (!opsSel) return om("먼저 저장해 주세요"); saveOps({ hidden: !opsData[opsSel].hidden }); };
+$("opsDel").onclick = async () => {
+  if (!opsSel) return newOps();
+  if (!confirm("삭제할까요?")) return;
+  try { await db.collection(SECS[sec].coll).doc(opsSel).delete(); delete opsData[opsSel]; newOps(); om("삭제했어요", true); } catch (e) { om("안 됐어요: " + (e.code || e.message)); }
+};
+
+// ----- 한 장짜리 설정: 끝말 단어 · 출석 선물 -----
+const ATT_DEFAULT = [{ coins: 20 }, { coins: 30 }, { coupon: 1 }, { coins: 40 }, { seeds: 2 }, { coins: 50 }, { coins: 100, xp: 10 }];
+async function openSingle() {
+  $("opsNew").classList.add("hide"); $("opsList").innerHTML = ""; $("opsHide").classList.add("hide"); $("opsDel").classList.add("hide");
+  const coll = sec === "words" ? "wordDict" : sec === "merchant" ? "merchantConfig" : "attendConfig";
+  let d = {};
+  try { const s = await db.collection(coll).doc("main").get(); d = s.exists ? s.data() : {}; } catch (e) { om("못 불러왔어요"); }
+  if (sec === "merchant") return merchantForm(d);
+  if (sec === "words") {
+    $("opsTitle").textContent = "🔤 끝말잇기 단어";
+    $("opsHelp").textContent = "정답으로 인정할 단어를 더하거나(신조어 등), 막을 단어를 적어요. 띄어쓰기나 줄바꿈으로 구분 · 한글 2글자 이상. 하이도 '막은 단어'는 안 써요.";
+    $("opsList").innerHTML = '<div class="note">더한 단어 ' + countW(d.add) + "개 · 막은 단어 " + countW(d.block) + "개</div>";
+    $("opsForm").innerHTML = "<label>✅ 정답으로 인정할 단어</label><textarea id=\"w_add\" rows=\"8\" style=\"width:100%;padding:8px;border:2px solid #b8c4d8;border-radius:8px;font:inherit\">" + (d.add || "") + "</textarea>" +
+      "<label>🚫 막을 단어</label><textarea id=\"w_block\" rows=\"5\" style=\"width:100%;padding:8px;border:2px solid #b8c4d8;border-radius:8px;font:inherit\">" + (d.block || "") + "</textarea>";
+  } else {
+    $("opsTitle").textContent = "📅 출석 선물 (7일 반복)";
+    $("opsHelp").textContent = "매일 출석하면 받는 선물이에요. 7일마다 반복. 키는 cm로 써요 (예: 1 = 키 +1cm).";
+    const r = d.rewards && d.rewards.length === 7 ? d.rewards : ATT_DEFAULT;
+    $("opsForm").innerHTML = '<table style="width:100%;font-size:13px;border-spacing:4px"><tr><th></th><th>코인</th><th>간식 쿠폰</th><th>성장 씨앗</th><th>키 +cm</th></tr>' +
+      r.map((x, i) => "<tr><td><b>" + (i + 1) + "일" + (i === 6 ? " 🎁" : "") + "</b></td>" + ["coins", "coupon", "seeds", "xp"].map((k) => '<td><input type="number" step="' + (k === "xp" ? "0.1" : "1") + '" id="a_' + i + "_" + k + '" value="' + (k === "xp" ? (x.xp || 0) / 10 : x[k] || 0) + '"></td>').join("") + "</tr>").join("") + "</table>";
+  }
+}
+async function saveSingle() {
+  let coll, d;
+  if (sec === "merchant") { coll = "merchantConfig"; d = merchantRead(); }
+  else if (sec === "words") { coll = "wordDict"; d = { add: $("w_add").value.trim(), block: $("w_block").value.trim(), updatedAt: Date.now() }; }
+  else { coll = "attendConfig"; d = { rewards: Array.from({ length: 7 }, (_, i) => { const o = {}; for (const k of ["coins", "coupon", "seeds", "xp"]) { const v = +$("a_" + i + "_" + k).value || 0; if (v) o[k] = k === "xp" ? Math.round(v * 10) : v; } return o; }), updatedAt: Date.now() }; }
+  try { await db.collection(coll).doc("main").set(d); om("저장했어요! 게임에 곧 반영돼요", true); if (sec === "words") openSingle(); } catch (e) { om("저장이 안 됐어요: " + (e.code || e.message)); }
+}
+
+// ----- 🦝 수상한 상인 -----
+const M_DEF = { days: [1, 3, 5, 6, 0], start: "14:00", end: "16:30", sellCount: 4, stampGoal: 10, wants: "",
+  trades: "stone*5 > petRock\nsock*2 > oddSocks\ntwig*3 + clover*1 > luckyWand\noddstone*3 > stoneTower\ncap*6 > capCrown\nreceipt*5 > craneMobile\ncandy*4 > candyLamp\ntwig*6 > twigChair\nstone*3 + oddstone*3 > stoneFrame\nstash*3 > haiBank\npebble*3 > pebbleNeck\nclover*3 > cloverWreath\nshell*4 > shellChime\nmarble*5 > beadCurtain\nring*3 > ringNail\nkey*3 > lockedBox\nmap*3 > mapRug\nacorn*5 > faiAcornHat\ncap*3 + marble*2 > sparkMobile\ngoldfish*1 + stone*5 > fishTrophy\ntooth*2 > toothNeck\nufo*3 > miniUfo\nhcoin*3 > coinFrame\nshroom*2 > shroomLamp\ncapsule*1 + key*1 > pastLetter\neggfossil*2 > eggCushion\noldfish*1 > anchovyJar\nstar*1 + marble*3 > starCrown\nfaicrown*1 > faiRoyal\nmseed*1 + clover*2 > mysteryPot\nrainbow*1 + pebble*2 > rainbowRug",
+  sells: "mirror 220\nmoonLamp 300\nskyUmbrella 180\nrevClock 260\nkettle 200\ncloudCushion 240\nfishSofa 450\nspaceSuit 380\nmeltSnowman 160\nnoDoor 330\nsingCactus 210\nglassSafe 280\nhaiBox 120\nthreeChair 140\nemptyTank 190\nlighthouse 350\noneStep 100\nsecretDrawer 300\ngacha 420\nbigAcorn 250\ncompass 150\nrainWindow 170\nupsideFrame 90\nweirdMap 230\ncuckoo 260\nwanted 120\nframedSock 110\nstarCurtain 200\nraccoonPic 300\npwMemo 80\ncropRug 280\npawRug 160\nholeRug 220\nstQuestion 70\nstPaw 70\nstCrack 90\nbundleHat 260\nraccoonMask 240\npotHat 150\nantenna 200\nshellMuffs 180\nsunglasses 220\nmustache 160\npaperCape 190\ntrenchCoat 380\narmorBit 420\nfishScarf 230\nrubberGloves 120\nraincoat 300\nclearCape 500" };
+const DIG_NAMES = "🪨 흔함: stone 그냥 돌 · oddstone 이상한 돌 · twig 나뭇가지 · cap 녹슨 병뚜껑 · receipt 구겨진 영수증 · sock 양말 한 짝 · stash 하이가 숨긴 비상금 · candy 흙 묻은 사탕\n" +
+  "💎 드묾: pebble 반짝이는 조약돌 · clover 네잎클로버 · shell 작은 조개껍데기 · marble 유리구슬 · ring 장난감 반지 · key 오래된 열쇠 · map 작은 보물지도 · acorn 파이가 숨긴 도토리\n" +
+  "🌟 희귀: goldfish 황금 멸치 · tooth 공룡 이빨 · ufo UFO 부품 · hcoin 고대 하이 동전 · shroom 빛나는 버섯 · capsule 미니 타임캡슐 · eggfossil 공룡 알 화석\n" +
+  "👑 전설: gshovel 황금 삽 · statue 고대 하이 석상 · rainbow 무지개 화석 · star 별똥별 조각 · faicrown 파이의 왕관 · mseed 정체불명의 씨앗 · oldfish 100년 묵은 멸치\n" +
+  "🦝 상인 물건 (81개): petRock 애완 돌 · anchovyJar 멸치 박물관 · luckyWand 행운 지팡이 · oddSocks 짝짝이 양말 · compass 고장 난 나침반 · mirror 수상한 거울 · moonLamp 달 조각 램프 · skyUmbrella 하늘 우산 · revClock 거꾸로 가는 시계 · kettle 혼자 끓는 주전자 · cloudCushion 구름 쿠션 · fishSofa 멸치 모양 소파 · spaceSuit 낡은 우주복 마네킹 · meltSnowman 절대 안 녹는 눈사람 · noDoor 문 없는 문 · singCactus 노래하는 선인장 · glassSafe 속이 보이는 금고 · haiBox 하이 크기 택배 상자 · threeChair 세 발 의자 · emptyTank 물 없는 어항 · lighthouse 작은 등대 · oneStep 계단 한 칸 · secretDrawer 비밀 서랍장 · gacha 고장 난 뽑기 기계 · bigAcorn 거대한 도토리 · rainWindow 비 오는 창문 액자 · upsideFrame 거꾸로 걸린 액자 · weirdMap 미지의 지도 · cuckoo 뻐꾸기 없는 뻐꾸기시계 · wanted 하이 수배 전단 · framedSock 액자에 넣은 양말 · starCurtain 별자리 커튼 · raccoonPic 너구리 초상화 · pwMemo 비밀번호 메모 · cropRug 미스터리 서클 러그 · pawRug 발자국 러그 · holeRug 땅굴 구멍 러그 · stQuestion 물음표 스티커 · stPaw 너구리 발바닥 스티커 · stCrack 금 간 벽 스티커 · bundleHat 보따리 모자 · raccoonMask 너구리 가면 · potHat 뒤집힌 화분 모자 · antenna 안테나 머리띠 · shellMuffs 소라 귀마개 · sunglasses 수상한 선글라스 · mustache 가짜 콧수염 · paperCape 신문지 망토 · trenchCoat 수상한 트렌치코트 · armorBit 반짝이 갑옷 조각 · fishScarf 멸치 목도리 · rubberGloves 고무장갑 · raincoat 노란 우비 · clearCape 투명 망토 · stoneTower 아슬아슬 돌탑 · capCrown 병뚜껑 왕관 · craneMobile 영수증 종이학 모빌 · candyLamp 사탕 램프 · twigChair 나뭇가지 의자 · stoneFrame 돌 수집 액자 · haiBank 하이 저금통 · pebbleNeck 조약돌 목걸이 · cloverWreath 클로버 화관 · shellChime 조개 풍경 · beadCurtain 구슬 커튼 · ringNail 반짝이 반지 네일 · lockedBox 열리지 않는 상자 · mapRug 보물지도 러그 · faiAcornHat 파이 도토리 모자 · sparkMobile 반짝반짝 모빌 · fishTrophy 황금 멸치 트로피 · toothNeck 공룡 이빨 목걸이 · miniUfo 둥둥 미니 UFO · coinFrame 하이 동전 액자 · shroomLamp 버섯 무드등 · pastLetter 과거에서 온 편지 액자 · eggCushion 공룡 알 쿠션 · starCrown 별빛 왕관 · faiRoyal 진짜 파이 왕관 · mysteryPot 뭐가 자랄지 모르는 화분 · rainbowRug 무지개 러그";
+const TA = (id, v, rows) => '<textarea id="' + id + '" rows="' + rows + '" style="width:100%;padding:8px;border:2px solid #b8c4d8;border-radius:8px;font:inherit;color:#2a4a80">' + (v || "") + "</textarea>";
+function merchantForm(d) {
+  const m = Object.assign({}, M_DEF, d);
+  $("opsTitle").textContent = "🦝 수상한 상인 · 🏛 광장 시간표";
+  $("opsHelp").textContent = "보따리 멘 너구리 상인이 마당에 오는 요일 · 시간과 거래 목록이에요. 비워 두면 기본값을 써요. 저장하면 켜 둔 게임엔 최대 10분 뒤 반영.";
+  $("opsList").innerHTML = '<div class="note" style="white-space:pre-line;font-size:12px;line-height:1.6"><b>물건 이름표 (id)</b>\n' + DIG_NAMES + "</div>";
+  const DN = ["일", "월", "화", "수", "목", "금", "토"];
+  $("opsForm").innerHTML = "<label>오는 요일</label><div>" + [1, 2, 3, 4, 5, 6, 0].map((i) => '<label style="display:inline-block;margin-right:10px;font-weight:400"><input type="checkbox" id="md_' + i + '"' + (m.days.map(Number).includes(i) ? " checked" : "") + "> " + DN[i] + "</label>").join("") + "</div>" +
+    '<label>오는 시간</label><input type="time" id="m_start" value="' + m.start + '" style="width:auto"> ~ <input type="time" id="m_end" value="' + m.end + '" style="width:auto">' +
+    '<label>단골 도장 몇 개면 칭호「상인의 단골 하이」</label><input type="number" id="m_goal" value="' + m.stampGoal + '">' +
+    "<label>💰 오늘 찾는 물건 (한 줄에 하나: id 가격 · 비워 두면 매일 자동으로 3개, 평소 값의 3배)</label>" + TA("m_wants", m.wants, 3) +
+    "<label>🔄 바꿔요 (한 줄에 하나: 재료id*개수 + 재료id*개수 > 받을 아이템id · 몇 줄이든 · 게임에선 4개씩 넘겨 봐요)</label>" + TA("m_trades", m.trades, 10) +
+    "<label>🛍 팔아요 (한 줄에 하나: 아이템id 가격) · 이 중에서 매일 골라서 진열</label>" + TA("m_sells", m.sells, 10) +
+    '<label>하루에 진열할 개수 (최대 4)</label><input type="number" id="m_sellCount" value="' + m.sellCount + '">' + plazaSchedForm(d.plaza || {});
+}
+// ----- 🏛 광장 시간표 (같은 문서 merchantConfig/main 의 plaza 에 저장) -----
+const PEV_DEF = { yoga: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "10:00", end: "10:30" }, bingo: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "14:00", end: "14:15" }, party: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "17:00", end: "17:30" }, fire: { on: true, days: [6], start: "22:00", end: "22:30" }, flea: { on: true, days: [0], start: "14:00", end: "16:30" } };
+const PEV_NAMES = { yoga: "🧘 아침 요가 (5분 함께하면 보상)", bingo: "🎱 오후 빙고 (8초마다 공 · 75개 다 뽑으면 10분 · 15분 이상으로 잡아 주세요)", party: "🪩 저녁 댄스파티 (3분 + 춤 3번)", fire: "🎆 불꽃놀이 (하늘 10번 누르기)", flea: "🧺 플리마켓 (너구리 상인이 광장에도 와요 · 상인 오는 시간과 겹칠 때만)" };
+function plazaSchedForm(pl) {
+  const DN = ["일", "월", "화", "수", "목", "금", "토"];
+  return '<h3 style="margin:22px 0 4px">🏛 광장 시간표</h3><div class="note">정해진 시간에 광장에서 다 같이 하는 이벤트예요. 참여하면 하루 한 번 코인 30 + 기분 (빙고는 1등 50 · 2등 30 · 3등 20 · 참가 5). 요가 · 파티 10번, 빙고 1등 5번이면 칭호.</div>' +
+    Object.keys(PEV_DEF).map((k) => { const e = Object.assign({}, PEV_DEF[k], pl[k] || {});
+      return '<div style="border:2px solid #e0e6f0;border-radius:10px;padding:8px 10px;margin-top:8px"><label style="margin:0"><input type="checkbox" id="pv_' + k + '_on"' + (e.on !== false ? " checked" : "") + "> " + PEV_NAMES[k] + "</label><div>" +
+        [1, 2, 3, 4, 5, 6, 0].map((i) => '<label style="display:inline-block;margin-right:8px;font-weight:400"><input type="checkbox" id="pv_' + k + "_d" + i + '"' + (e.days.map(Number).includes(i) ? " checked" : "") + "> " + DN[i] + "</label>").join("") + "</div>" +
+        '<input type="time" id="pv_' + k + '_s" value="' + e.start + '" style="width:auto"> ~ <input type="time" id="pv_' + k + '_e" value="' + e.end + '" style="width:auto"></div>'; }).join("");
+}
+function plazaSchedRead() {
+  const o = {};
+  for (const k in PEV_DEF) o[k] = { on: $("pv_" + k + "_on").checked, days: [0, 1, 2, 3, 4, 5, 6].filter((i) => $("pv_" + k + "_d" + i).checked), start: $("pv_" + k + "_s").value || PEV_DEF[k].start, end: $("pv_" + k + "_e").value || PEV_DEF[k].end };
+  return o;
+}
+function merchantRead() {
+  return { days: [0, 1, 2, 3, 4, 5, 6].filter((i) => $("md_" + i).checked), start: $("m_start").value || "14:00", end: $("m_end").value || "16:30",
+    stampGoal: +$("m_goal").value || 10, sellCount: Math.min(4, +$("m_sellCount").value || 3),
+    wants: $("m_wants").value.trim(), trades: $("m_trades").value.trim(), sells: $("m_sells").value.trim(), plaza: plazaSchedRead(), updatedAt: Date.now() };
+}
+
+// ----- 👀 친구들 현황 (보기만) -----
+async function openUsers() {
+  $("opsTitle").textContent = "👀 친구들 현황"; $("opsHelp").textContent = "게임에 닉네임을 정한 사람들이에요 (보기만 해요). 마지막 접속 순.";
+  $("opsBtns").classList.add("hide"); $("opsNew").classList.add("hide"); $("opsForm").innerHTML = "";
+  try {
+    let plazaLine = "";
+    try { const pz = await db.collection("plaza").get(); const live = pz.docs.map((d) => d.data()).filter((v) => v.at > Date.now() - 60000); const byCh = {}; live.forEach((v) => (byCh[v.ch] = (byCh[v.ch] || 0) + 1));
+      plazaLine = "🏛 지금 광장에 " + live.length + "명" + (live.length ? " (" + Object.keys(byCh).sort().map((c) => c + "채널 " + byCh[c] + "명").join(" · ") + ") · " + live.map((v) => v.nick).join(", ") : ""); } catch (e) { plazaLine = "🏛 광장 인원을 못 불러왔어요 (Firebase 규칙에 plaza가 있는지 확인)"; }
+    const s = await db.collection("users").get();
+    const rows = s.docs.map((d) => d.data()).filter((u) => u.nick && !u.moved).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    $("opsList").innerHTML = '<div class="note">' + rows.length + "명</div>" + '<div class="note" style="font-weight:700;color:#2f9e6e">' + plazaLine + "</div>";
+    $("opsForm").innerHTML = '<table style="width:100%;font-size:13px;border-collapse:collapse">' +
+      "<tr style=\"text-align:left;border-bottom:2px solid #b8c4d8\"><th>닉네임</th><th>칭호</th><th>키</th><th>세대</th><th>비밀</th><th>코드</th><th>마지막 접속</th></tr>" +
+      rows.map((u) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + u.nick + "</b></td><td>" + (u.badge || "") + "</td><td>" + (u.heightCm ? (Math.round(u.heightCm * 10) / 10) + "cm" : "") + "</td><td>" + ((u.gen && u.gen.no) || 1) + "대</td><td>" + (u.secrets || 0) + "</td><td>" + (u.code || "") + "</td><td>" + (u.updatedAt ? new Date(u.updatedAt).toLocaleString() : "") + "</td></tr>").join("") + "</table>";
+  } catch (e) { $("opsForm").textContent = "못 불러왔어요: " + (e.code || e.message); }
+}
+</script>
+</body>
+</html>
