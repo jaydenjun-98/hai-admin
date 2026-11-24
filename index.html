@@ -77,7 +77,7 @@ input[type=color]{padding:2px;height:36px}
 <nav id="nav" style="display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px 0">
   <button class="tab on" data-sec="shop">🛍 상점</button><button class="tab" data-sec="titles">🏅 칭호</button><button class="tab" data-sec="notices">📢 새 소식</button>
   <button class="tab" data-sec="coupons">🎫 쿠폰</button><button class="tab" data-sec="events">🎉 이벤트</button><button class="tab" data-sec="words">🔤 끝말 단어</button>
-  <button class="tab" data-sec="liar">🕵️ 라이어</button><button class="tab" data-sec="attend">📅 출석 선물</button><button class="tab" data-sec="merchant">🦝 수상한 상인</button><button class="tab" data-sec="users">👀 친구들 현황</button>
+  <button class="tab" data-sec="liar">🕵️ 라이어</button><button class="tab" data-sec="attend">📅 출석 선물</button><button class="tab" data-sec="merchant">🦝 수상한 상인</button><button class="tab" data-sec="kuji">🎟 쿠지</button><button class="tab" data-sec="users">👀 친구들 현황</button>
 </nav>
 <main id="shopMain">
   <section class="card">
@@ -516,7 +516,7 @@ const STATS = {
   play_anchovy: "멸치잡기 · 플레이 횟수", play_beat: "쑥쑥비트 · 플레이 횟수", play_growrun: "쑥쑥런 · 플레이 횟수", play_stairs: "쑥쑥계단 · 플레이 횟수", play_word: "끝말잇기(하이랑) · 플레이 횟수",
   height: "하이 · 키 (cm)", gen: "하이 · 세대", attend: "하이 · 출석 일수", secrets: "하이 · 찾은 비밀 수", dex: "하이 · 바다 도감 종류",
   friends: "친구 · 친구 수", visits: "친구 · 친구 집 놀러 간 횟수", giftsSent: "친구 · 선물 보낸 횟수", shoutsUsed: "친구 · 확성기 쓴 횟수",
-  ev_snack: "돌보기 · 간식 준 횟수", ev_pet: "돌보기 · 쓰다듬은 횟수", ev_exercise: "돌보기 · 체조 횟수", ev_harvest: "돌보기 · 화단 수확 횟수", ev_highfive: "돌보기 · 하이파이브 횟수", digs: "마당 · 땅 판 횟수", digDex: "마당 · 발굴 도감 종류", merchantTrades: "마당 · 상인과 거래한 횟수", bugs: "방 · 바퀴벌레 쫓은 횟수", yardEvents: "마당 · 이벤트 성공 횟수", snowman: "마당 · 눈사람 만든 횟수", moonRabbit: "마당 · 달토끼 만난 횟수", flowersSent: "광장 · 꽃 선물한 횟수", dances: "광장 · 춤춘 횟수", groupDance: "광장 · 떼춤 성공 횟수", plazaYoga: "광장 · 아침 요가 참여 횟수", plazaParty: "광장 · 저녁 댄스파티 참여 횟수", plazaFire: "광장 · 불꽃놀이 참여 횟수", omokWins: "광장 · 오목 이긴 횟수", bingoWins: "광장 · 빙고 1등 횟수", bingoPlays: "광장 · 빙고 참가 횟수", eggs: "마당 · 주운 달걀 수", cloudDex: "옥상 · 구름 도감 종류", starDex: "옥상 · 별자리 도감 종류", laundry: "옥상 · 빨래 말린 횟수", lessons: "학원 · 수업 들은 횟수", memos: "친구 · 다락방 메모 붙인 횟수", eggDex: "마당 · 달걀 도감 종류", gacha: "광장 · 캡슐 뽑기 횟수", figures: "광장 · 모은 피규어 종류", jobs: "알바 · 전체 알바 횟수", job_cafe: "알바 · 카페 알바 횟수", job_flower: "알바 · 꽃집 알바 횟수", job_post: "알바 · 우체국 알바 횟수",
+  ev_snack: "돌보기 · 간식 준 횟수", ev_pet: "돌보기 · 쓰다듬은 횟수", ev_exercise: "돌보기 · 체조 횟수", ev_harvest: "돌보기 · 화단 수확 횟수", ev_highfive: "돌보기 · 하이파이브 횟수", digs: "마당 · 땅 판 횟수", digDex: "마당 · 발굴 도감 종류", merchantTrades: "마당 · 상인과 거래한 횟수", bugs: "방 · 바퀴벌레 쫓은 횟수", yardEvents: "마당 · 이벤트 성공 횟수", snowman: "마당 · 눈사람 만든 횟수", moonRabbit: "마당 · 달토끼 만난 횟수", flowersSent: "광장 · 꽃 선물한 횟수", dances: "광장 · 춤춘 횟수", groupDance: "광장 · 떼춤 성공 횟수", plazaYoga: "광장 · 아침 요가 참여 횟수", plazaParty: "광장 · 저녁 댄스파티 참여 횟수", plazaFire: "광장 · 불꽃놀이 참여 횟수", omokWins: "광장 · 오목 이긴 횟수", bingoWins: "광장 · 빙고 1등 횟수", bingoPlays: "광장 · 빙고 참가 횟수", eggs: "마당 · 주운 달걀 수", cloudDex: "옥상 · 구름 도감 종류", starDex: "옥상 · 별자리 도감 종류", laundry: "옥상 · 빨래 말린 횟수", lessons: "학원 · 수업 들은 횟수", memos: "친구 · 다락방 메모 붙인 횟수", kuji: "광장 · 쿠지 뽑은 횟수", eggDex: "마당 · 달걀 도감 종류", gacha: "광장 · 캡슐 뽑기 횟수", figures: "광장 · 모은 피규어 종류", jobs: "알바 · 전체 알바 횟수", job_cafe: "알바 · 카페 알바 횟수", job_flower: "알바 · 꽃집 알바 횟수", job_post: "알바 · 우체국 알바 횟수",
 };
 const DAY = 86400000;
 const toDate = (ms) => (ms ? new Date(ms - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10) : "");
@@ -556,6 +556,7 @@ async function openSec() {
   om(""); opsSel = null; $("opsForm").innerHTML = ""; $("opsBtns").classList.remove("hide"); $("opsNew").classList.remove("hide");
   if (sec === "words" || sec === "attend" || sec === "merchant") return openSingle();
   if (sec === "users") return openUsers();
+  if (sec === "kuji") return openKuji();
   const S = SECS[sec];
   $("opsTitle").textContent = S.name; $("opsHelp").textContent = S.help;
   try { const s = await db.collection(S.coll).get(); opsData = {}; s.docs.forEach((d) => { opsData[d.id] = d.data(); }); } catch (e) { om("못 불러왔어요 (규칙을 확인해 주세요)"); }
@@ -614,7 +615,7 @@ function fillOps(d, id) {
   $("opsHide").textContent = d.hidden ? "👀 다시 켜기" : "🙈 숨기기";
 }
 function newOps() { opsSel = null; fillOps({}, null); renderOpsList(); }
-$("opsNew").onclick = () => (sec === "words" || sec === "attend" || sec === "merchant" || sec === "users") ? null : newOps();
+$("opsNew").onclick = () => (sec === "words" || sec === "attend" || sec === "merchant" || sec === "users" || sec === "kuji") ? null : newOps();
 function readOps() {
   const S = SECS[sec], d = {};
   for (const [k, , type] of S.fields) {
@@ -723,6 +724,28 @@ function merchantRead() {
   return { days: [0, 1, 2, 3, 4, 5, 6].filter((i) => $("md_" + i).checked), start: $("m_start").value || "14:00", end: $("m_end").value || "16:30",
     stampGoal: +$("m_goal").value || 10, sellCount: Math.min(4, +$("m_sellCount").value || 3),
     wants: $("m_wants").value.trim(), trades: $("m_trades").value.trim(), sells: $("m_sells").value.trim(), plaza: plazaSchedRead(), updatedAt: Date.now() };
+}
+
+// ----- 🎟 쿠지 (wordRooms/kuji-box 하나를 모두가 같이 뽑아요) -----
+const KUJI_N = { A: 1, B: 2, C: 3, D: 6, E: 14, F: 24 };
+const KUJI_NM = { A: "왕 파이 인형", B: "파이 벽지", C: "파이 얼굴 러그", D: "파이 쿠션 · 액자", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" };
+async function openKuji() {
+  $("opsTitle").textContent = "🎟 하이 쿠지"; $("opsHelp").textContent = "광장 캡슐뽑기 옆 쿠지 상자예요. 모두가 같은 상자를 같이 뽑아요 (50장 · 한 장 200코인). 상자가 비면 여기서 새 상자를 열어요.";
+  $("opsBtns").classList.add("hide"); $("opsNew").classList.add("hide"); $("opsList").innerHTML = "";
+  let b = null;
+  try { const s = await db.collection("wordRooms").doc("kuji-box").get(); b = s.exists ? s.data() : null; } catch (e) { om("못 불러왔어요: " + (e.code || e.message)); }
+  const left = b ? Object.values(b.left || {}).reduce((x, y) => x + y, 0) : 0;
+  $("opsList").innerHTML = b ? '<div class="note" style="font-size:14px"><b>' + (b.theme || "") + " · " + (b.no || 1) + "탄</b><br>남은 장수 " + left + " / " + (b.total || 50) + (b.lastBy ? "<br>🏆 라스트원: " + b.lastBy : "") + "</div>" : '<div class="note">아직 상자가 없어요 (누가 광장에서 쿠지를 처음 누르면 1탄이 열려요)</div>';
+  $("opsForm").innerHTML = (b ? '<table style="width:100%;font-size:13px;border-collapse:collapse">' + Object.keys(KUJI_N).map((g) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + g + "상</b></td><td>" + KUJI_NM[g] + "</td><td style=\"text-align:right\">" + ((b.left || {})[g] || 0) + " / " + KUJI_N[g] + "</td></tr>").join("") + "</table>" +
+    '<label>최근 뽑은 사람</label><div class="note">' + ((b.log || []).slice().reverse().map((l) => l.nick + " · " + (l.last ? "🏆 라스트원" : l.g + "상") + " · " + new Date(l.at).toLocaleString()).join("<br>") || "없어요") + "</div>" : "") +
+    '<div class="btns"><button class="b1" id="kujiNew">🎟 새 상자 열기 (' + ((b && b.no) || 0) + 1 + '탄)</button></div><div class="note">※ 지금 상자가 남아 있어도 새 상자로 바뀌어요 (남은 장은 사라져요)</div>';
+  $("kujiNew").textContent = "🎟 새 상자 열기 (" + (((b && b.no) || 0) + 1) + "탄)";
+  $("kujiNew").onclick = async () => {
+    if (!user) return om("구글로 로그인해 주세요");
+    if (b && left > 0 && !confirm("아직 " + left + "장 남았어요. 그래도 새 상자를 열까요?")) return;
+    const nb = { kind: "kuji", host: user.uid, no: ((b && b.no) || 0) + 1, theme: "🌱 파이의 방", left: Object.assign({}, KUJI_N), total: 50, drawn: 0, lastBy: null, log: [], news: { text: "🎟 쿠지 새 상자가 열렸어요! 광장으로 고고!", at: Date.now() }, openedAt: Date.now() };
+    try { await db.collection("wordRooms").doc("kuji-box").set(nb); om("새 상자를 열었어요! 🎉", true); openKuji(); } catch (e) { om("안 됐어요: " + (e.code || e.message)); }
+  };
 }
 
 // ----- 👀 친구들 현황 (보기만) -----
