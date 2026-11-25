@@ -727,23 +727,43 @@ function merchantRead() {
 }
 
 // ----- 🎟 쿠지 (wordRooms/kuji-box 하나를 모두가 같이 뽑아요) -----
+// 시리즈는 게임 js/kuji.js 의 KUJI_SERIES 와 이름을 맞춰요
 const KUJI_N = { A: 1, B: 2, C: 3, D: 6, E: 14, F: 24 };
-const KUJI_NM = { A: "왕 파이 인형", B: "파이 벽지", C: "파이 얼굴 러그", D: "파이 쿠션 · 액자", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" };
+const KUJI_SER = {
+  fai: { theme: "🌱 파이의 방", nm: { A: "왕 파이 인형", B: "파이 벽지", C: "파이 얼굴 러그", D: "파이 쿠션 · 액자", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" }, last: "파이 인형옷" },
+  raccoon: { theme: "🦝 너구리의 보따리", nm: { A: "왕 너구리 인형", B: "너구리 벽지", C: "너구리 꼬리 러그", D: "너구리 쿠션 · 보따리", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" }, last: "너구리 인형옷" },
+};
+const kujiMD = (ms) => (ms ? new Date(ms).toLocaleDateString() : "?");
+function kujiSummary(b) { // 지난 기록으로 옮길 한 줄 (A·B·C 당첨자 · 라스트원)
+  return { no: b.no || 1, series: b.series || "fai", theme: b.theme || KUJI_SER[b.series || "fai"].theme, openedAt: b.openedAt || 0, soldAt: b.soldAt || 0,
+    drawn: b.drawn || 0, total: b.total || 50, lastBy: b.lastBy || null, top: b.top || (b.log || []).filter((l) => l.g <= "C").map((l) => ({ g: l.g, nick: l.nick })) };
+}
 async function openKuji() {
-  $("opsTitle").textContent = "🎟 하이 쿠지"; $("opsHelp").textContent = "광장 캡슐뽑기 옆 쿠지 상자예요. 모두가 같은 상자를 같이 뽑아요 (50장 · 한 장 200코인). 상자가 비면 여기서 새 상자를 열어요.";
+  $("opsTitle").textContent = "🎟 하이 쿠지"; $("opsHelp").textContent = "광장 캡슐뽑기 옆 쿠지 상자예요. 모두가 같은 상자를 같이 뽑아요 (50장 · 한 장 200코인 · 한 사람당 하루 5번). 상자가 비면 여기서 새 상자를 열어요. 지난 상자는 '지난 기록'으로 옮겨져서 게임 📜 버튼으로 볼 수 있어요.";
   $("opsBtns").classList.add("hide"); $("opsNew").classList.add("hide"); $("opsList").innerHTML = "";
   let b = null;
   try { const s = await db.collection("wordRooms").doc("kuji-box").get(); b = s.exists ? s.data() : null; } catch (e) { om("못 불러왔어요: " + (e.code || e.message)); }
   const left = b ? Object.values(b.left || {}).reduce((x, y) => x + y, 0) : 0;
-  $("opsList").innerHTML = b ? '<div class="note" style="font-size:14px"><b>' + (b.theme || "") + " · " + (b.no || 1) + "탄</b><br>남은 장수 " + left + " / " + (b.total || 50) + (b.lastBy ? "<br>🏆 라스트원: " + b.lastBy : "") + "</div>" : '<div class="note">아직 상자가 없어요 (누가 광장에서 쿠지를 처음 누르면 1탄이 열려요)</div>';
-  $("opsForm").innerHTML = (b ? '<table style="width:100%;font-size:13px;border-collapse:collapse">' + Object.keys(KUJI_N).map((g) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + g + "상</b></td><td>" + KUJI_NM[g] + "</td><td style=\"text-align:right\">" + ((b.left || {})[g] || 0) + " / " + KUJI_N[g] + "</td></tr>").join("") + "</table>" +
+  const S = b ? KUJI_SER[b.series || "fai"] || KUJI_SER.fai : null;
+  const hist = (b && b.history) || [];
+  $("opsList").innerHTML = (b ? '<div class="note" style="font-size:14px"><b>' + (b.theme || S.theme) + " · " + (b.no || 1) + "탄</b><br>남은 장수 " + left + " / " + (b.total || 50) + (b.lastBy ? "<br>🏆 라스트원: " + b.lastBy : "") + "</div>" : '<div class="note">아직 상자가 없어요 (누가 광장에서 쿠지를 처음 누르면 1탄이 열려요)</div>') +
+    '<div style="margin-top:14px;padding-top:10px;border-top:2px dashed #b8c4d8"><b style="font-size:13px">📜 지난 기록 (' + hist.length + ")</b>" +
+    (hist.slice().reverse().map((h) => '<div style="font-size:12px;margin-top:6px"><b>' + h.no + "탄 · " + h.theme + "</b><br><span style=\"color:#5a6a8a\">" + kujiMD(h.openedAt) + " ~ " + (h.soldAt ? kujiMD(h.soldAt) + " 매진" : h.drawn + "/" + h.total + "장에서 끝") +
+      (h.lastBy ? " · 🏆 " + h.lastBy : "") + ((h.top || []).length ? "<br>" + h.top.map((t) => t.g + "상 " + t.nick).join(" · ") : "") + "</span></div>").join("") || '<div class="note">아직 없어요</div>') + "</div>";
+  const nextSer = b && (b.series || "fai") === "fai" ? "raccoon" : "fai";
+  $("opsForm").innerHTML = (b ? '<table style="width:100%;font-size:13px;border-collapse:collapse">' + Object.keys(KUJI_N).map((g) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + g + "상</b></td><td>" + S.nm[g] + "</td><td style=\"text-align:right\">" + ((b.left || {})[g] || 0) + " / " + KUJI_N[g] + "</td></tr>").join("") + "</table>" +
     '<label>최근 뽑은 사람</label><div class="note">' + ((b.log || []).slice().reverse().map((l) => l.nick + " · " + (l.last ? "🏆 라스트원" : l.g + "상") + " · " + new Date(l.at).toLocaleString()).join("<br>") || "없어요") + "</div>" : "") +
-    '<div class="btns"><button class="b1" id="kujiNew">🎟 새 상자 열기 (' + ((b && b.no) || 0) + 1 + '탄)</button></div><div class="note">※ 지금 상자가 남아 있어도 새 상자로 바뀌어요 (남은 장은 사라져요)</div>';
+    '<h3 style="margin:22px 0 4px">🎟 새 상자 열기</h3><label>어떤 버전으로 열까요?</label><select id="kujiSer">' +
+    Object.keys(KUJI_SER).map((k) => '<option value="' + k + '"' + (k === nextSer ? " selected" : "") + ">" + KUJI_SER[k].theme + " (A " + KUJI_SER[k].nm.A + " · 라스트원 " + KUJI_SER[k].last + ")</option>").join("") + "</select>" +
+    '<div class="btns"><button class="b1" id="kujiNew">🎟 새 상자 열기</button></div><div class="note">※ 지금 상자는 지난 기록으로 옮겨져요. 남은 장이 있으면 그 장들은 사라져요</div>';
   $("kujiNew").textContent = "🎟 새 상자 열기 (" + (((b && b.no) || 0) + 1) + "탄)";
   $("kujiNew").onclick = async () => {
     if (!user) return om("구글로 로그인해 주세요");
     if (b && left > 0 && !confirm("아직 " + left + "장 남았어요. 그래도 새 상자를 열까요?")) return;
-    const nb = { kind: "kuji", host: user.uid, no: ((b && b.no) || 0) + 1, theme: "🌱 파이의 방", left: Object.assign({}, KUJI_N), total: 50, drawn: 0, lastBy: null, log: [], news: { text: "🎟 쿠지 새 상자가 열렸어요! 광장으로 고고!", at: Date.now() }, openedAt: Date.now() };
+    const ser = $("kujiSer").value, T = KUJI_SER[ser], no = ((b && b.no) || 0) + 1;
+    const nb = { kind: "kuji", host: user.uid, no, series: ser, theme: T.theme, left: Object.assign({}, KUJI_N), total: 50, drawn: 0, lastBy: null, log: [], top: [],
+      history: b ? hist.concat([kujiSummary(b)]).slice(-30) : [],
+      news: { text: "🎟 쿠지 " + no + "탄 「" + T.theme + "」 상자가 열렸어요! 광장으로 고고!", at: Date.now() }, openedAt: Date.now() };
     try { await db.collection("wordRooms").doc("kuji-box").set(nb); om("새 상자를 열었어요! 🎉", true); openKuji(); } catch (e) { om("안 됐어요: " + (e.code || e.message)); }
   };
 }
