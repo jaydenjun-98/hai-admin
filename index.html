@@ -732,6 +732,7 @@ const KUJI_N = { A: 1, B: 2, C: 3, D: 6, E: 14, F: 24 };
 const KUJI_SER = {
   fai: { theme: "🌱 파이의 방", nm: { A: "왕 파이 인형", B: "파이 벽지", C: "파이 얼굴 러그", D: "파이 쿠션 · 액자", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" }, last: "파이 인형옷" },
   raccoon: { theme: "🦝 너구리의 보따리", nm: { A: "왕 너구리 인형", B: "너구리 벽지", C: "너구리 꼬리 러그", D: "너구리 쿠션 · 보따리", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" }, last: "너구리 인형옷" },
+  xmas: { theme: "🎄 삼총사의 크리스마스", nm: { A: "삼총사 썰매", B: "삼총사 벽지", C: "크리스마스 체크 러그", D: "스노우볼 · 리스", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" }, last: "루돌프 인형옷" },
 };
 const kujiMD = (ms) => (ms ? new Date(ms).toLocaleDateString() : "?");
 function kujiSummary(b) { // 지난 기록으로 옮길 한 줄 (A·B·C 당첨자 · 라스트원)
@@ -750,7 +751,7 @@ async function openKuji() {
     '<div style="margin-top:14px;padding-top:10px;border-top:2px dashed #b8c4d8"><b style="font-size:13px">📜 지난 기록 (' + hist.length + ")</b>" +
     (hist.slice().reverse().map((h) => '<div style="font-size:12px;margin-top:6px"><b>' + h.no + "탄 · " + h.theme + "</b><br><span style=\"color:#5a6a8a\">" + kujiMD(h.openedAt) + " ~ " + (h.soldAt ? kujiMD(h.soldAt) + " 매진" : h.drawn + "/" + h.total + "장에서 끝") +
       (h.lastBy ? " · 🏆 " + h.lastBy : "") + ((h.top || []).length ? "<br>" + h.top.map((t) => t.g + "상 " + t.nick).join(" · ") : "") + "</span></div>").join("") || '<div class="note">아직 없어요</div>') + "</div>";
-  const nextSer = b && (b.series || "fai") === "fai" ? "raccoon" : "fai";
+  const serKeys = Object.keys(KUJI_SER), nextSer = b ? serKeys[(serKeys.indexOf(b.series || "fai") + 1) % serKeys.length] : "fai"; // 지금 다음 버전을 골라 둬요
   $("opsForm").innerHTML = (b ? '<table style="width:100%;font-size:13px;border-collapse:collapse">' + Object.keys(KUJI_N).map((g) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + g + "상</b></td><td>" + S.nm[g] + "</td><td style=\"text-align:right\">" + ((b.left || {})[g] || 0) + " / " + KUJI_N[g] + "</td></tr>").join("") + "</table>" +
     '<label>최근 뽑은 사람</label><div class="note">' + ((b.log || []).slice().reverse().map((l) => l.nick + " · " + (l.last ? "🏆 라스트원" : l.g + "상") + " · " + new Date(l.at).toLocaleString()).join("<br>") || "없어요") + "</div>" : "") +
     '<h3 style="margin:22px 0 4px">🎟 새 상자 열기</h3><label>어떤 버전으로 열까요?</label><select id="kujiSer">' +
