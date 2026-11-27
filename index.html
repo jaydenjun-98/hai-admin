@@ -692,7 +692,7 @@ const DIG_NAMES = "🪨 흔함: stone 그냥 돌 · oddstone 이상한 돌 · tw
 const TA = (id, v, rows) => '<textarea id="' + id + '" rows="' + rows + '" style="width:100%;padding:8px;border:2px solid #b8c4d8;border-radius:8px;font:inherit;color:#2a4a80">' + (v || "") + "</textarea>";
 function merchantForm(d) {
   const m = Object.assign({}, M_DEF, d);
-  $("opsTitle").textContent = "🦝 수상한 상인 · 🏛 광장 시간표";
+  $("opsTitle").textContent = "🦝 수상한 상인 · 🏛 광장 시간표 · 🤝 공동 목표";
   $("opsHelp").textContent = "보따리 멘 너구리 상인이 마당에 오는 요일 · 시간과 거래 목록이에요. 비워 두면 기본값을 써요. 저장하면 켜 둔 게임엔 최대 10분 뒤 반영.";
   $("opsList").innerHTML = '<div class="note" style="white-space:pre-line;font-size:12px;line-height:1.6"><b>물건 이름표 (id)</b>\n' + DIG_NAMES + "</div>";
   const DN = ["일", "월", "화", "수", "목", "금", "토"];
@@ -702,7 +702,8 @@ function merchantForm(d) {
     "<label>💰 오늘 찾는 물건 (한 줄에 하나: id 가격 · 비워 두면 매일 자동으로 3개, 평소 값의 3배)</label>" + TA("m_wants", m.wants, 3) +
     "<label>🔄 바꿔요 (한 줄에 하나: 재료id*개수 + 재료id*개수 > 받을 아이템id · 몇 줄이든 · 게임에선 4개씩 넘겨 봐요)</label>" + TA("m_trades", m.trades, 10) +
     "<label>🛍 팔아요 (한 줄에 하나: 아이템id 가격) · 이 중에서 매일 골라서 진열</label>" + TA("m_sells", m.sells, 10) +
-    '<label>하루에 진열할 개수 (최대 4)</label><input type="number" id="m_sellCount" value="' + m.sellCount + '">' + plazaSchedForm(d.plaza || {});
+    '<label>하루에 진열할 개수 (최대 4)</label><input type="number" id="m_sellCount" value="' + m.sellCount + '">' + plazaSchedForm(d.plaza || {}) + goalForm(d.goal || {});
+  goalShowNow();
 }
 // ----- 🏛 광장 시간표 (같은 문서 merchantConfig/main 의 plaza 에 저장) -----
 const PEV_DEF = { yoga: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "10:00", end: "10:30" }, bingo: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "14:00", end: "14:15" }, party: { on: true, days: [0, 1, 2, 3, 4, 5, 6], start: "17:00", end: "17:30" }, fire: { on: true, days: [6], start: "22:00", end: "22:30" }, flea: { on: true, days: [0], start: "14:00", end: "16:30" } };
@@ -720,10 +721,29 @@ function plazaSchedRead() {
   for (const k in PEV_DEF) o[k] = { on: $("pv_" + k + "_on").checked, days: [0, 1, 2, 3, 4, 5, 6].filter((i) => $("pv_" + k + "_d" + i).checked), start: $("pv_" + k + "_s").value || PEV_DEF[k].start, end: $("pv_" + k + "_e").value || PEV_DEF[k].end };
   return o;
 }
+// ----- 🤝 광장 공동 목표 (같은 문서 merchantConfig/main 의 goal) -----
+const GOAL_K = { anchovy: ["🐟 바다 친구 잡기 (멸치잡기)", 3000], dance: ["💃 광장 춤", 300], stairs: ["🪜 쑥쑥계단 칸", 10000], jobs: ["💼 알바 횟수", 60], word: ["🔤 끝말잇기 이은 단어", 2000], dig: ["⛏ 땅 파기", 300], flower: ["💐 꽃 선물", 60] };
+const GOAL_ORD = ["anchovy", "dance", "stairs", "jobs", "word", "dig", "flower"];
+function goalWeekKey() { const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)); return mon.getFullYear() + "-" + (mon.getMonth() + 1) + "-" + mon.getDate(); }
+function goalAutoKind() { const wn = Math.floor(new Date(goalWeekKey().replace(/-/g, "/")).getTime() / (7 * 86400000)); return GOAL_ORD[((wn % 7) + 7) % 7]; }
+function goalForm(g) {
+  return '<h3 style="margin:22px 0 4px">🤝 광장 공동 목표</h3><div class="note">매주 월요일에 자동으로 바뀌어요 (이번 주 자동: ' + GOAL_K[goalAutoKind()][0] + ' ' + GOAL_K[goalAutoKind()][1] + '). 바꾸고 싶을 때만 골라요. 달성하면 이번 주에 보탠 사람 모두 100코인 + 씨앗 2.</div>' +
+    '<label>이번 주 목표</label><select id="g_kind"><option value="">자동 (추천)</option>' + Object.keys(GOAL_K).map((k) => '<option value="' + k + '"' + (g.kind === k ? " selected" : "") + ">" + GOAL_K[k][0] + " (기본 " + GOAL_K[k][1] + ")</option>").join("") + "</select>" +
+    '<label>목표 숫자 (비워 두면 기본값)</label><input type="number" id="g_target" value="' + (g.target || "") + '">' +
+    '<div id="g_now" class="note" style="margin-top:8px">이번 주 진행 상황 불러오는 중…</div>';
+}
+async function goalShowNow() {
+  try {
+    const s = await db.collection("wordRooms").doc("plaza-goal-" + goalWeekKey()).get(), d = s.exists ? s.data() : null;
+    const top = d ? Object.values(d.by || {}).sort((a, b) => b.n - a.n).slice(0, 10) : [];
+    $("g_now").innerHTML = d ? "<b>이번 주 (" + goalWeekKey() + "~) " + (GOAL_K[d.kind] || [d.kind])[0] + ": " + (d.total || 0) + " / " + (d.target || "?") + "</b><br>" + top.map((x) => x.nick + " " + x.n).join(" · ") : "이번 주엔 아직 아무도 안 보탰어요";
+  } catch (e) { $("g_now").textContent = "진행 상황을 못 불러왔어요: " + (e.code || e.message); }
+}
 function merchantRead() {
   return { days: [0, 1, 2, 3, 4, 5, 6].filter((i) => $("md_" + i).checked), start: $("m_start").value || "14:00", end: $("m_end").value || "16:30",
     stampGoal: +$("m_goal").value || 10, sellCount: Math.min(4, +$("m_sellCount").value || 3),
-    wants: $("m_wants").value.trim(), trades: $("m_trades").value.trim(), sells: $("m_sells").value.trim(), plaza: plazaSchedRead(), updatedAt: Date.now() };
+    wants: $("m_wants").value.trim(), trades: $("m_trades").value.trim(), sells: $("m_sells").value.trim(), plaza: plazaSchedRead(),
+    goal: { kind: $("g_kind").value, target: +$("g_target").value || 0 }, updatedAt: Date.now() };
 }
 
 // ----- 🎟 쿠지 (wordRooms/kuji-box 하나를 모두가 같이 뽑아요) -----
@@ -769,9 +789,32 @@ async function openKuji() {
   };
 }
 
+// ----- 📊 기록 보기 (칭호 숫자 정할 때) · 게임이 users 문서의 rec 에 올려요 -----
+let recRows = [];
+const REC_EXTRA = { stairsSteps: "쑥쑥계단 · 실제로 오른 최고 칸", titles: "하이 · 모은 칭호 수", goalWins: "광장 · 공동 목표 달성 주", favors: "마당 · 너구리 부탁 들어준 횟수" };
+const recLabel = (k) => STATS[k] || REC_EXTRA[k] || k;
+function recToolHtml() {
+  const keys = Object.keys(STATS).concat(Object.keys(REC_EXTRA));
+  return '<div style="margin-top:14px;padding-top:10px;border-top:2px dashed #b8c4d8"><b style="font-size:13px">📊 기록 보기</b>' +
+    '<label>어떤 기록?</label><select id="rec_k">' + keys.map((k) => '<option value="' + k + '"' + (k === "wordChain" ? " selected" : "") + ">" + recLabel(k) + "</option>").join("") + "</select>" +
+    '<label>칭호 기준 숫자 넣어 보기 (몇 명이 받는지)</label><input type="number" id="rec_n" placeholder="예: 100">' +
+    '<div id="rec_out" style="margin-top:8px;font-size:13px"></div><div class="note">※ 이번 업데이트 뒤에 한 번 이상 게임을 켠 사람만 보여요</div></div>';
+}
+function recRender() {
+  if (!$("rec_k")) return;
+  $("rec_k").onchange = recRender; $("rec_n").oninput = recRender;
+  const k = $("rec_k").value, n = +$("rec_n").value || 0;
+  const list = recRows.map((u) => ({ nick: u.nick, badge: u.badge || "", v: (u.rec && u.rec[k]) || 0, has: !!u.rec })).filter((x) => x.has).sort((a, b) => b.v - a.v);
+  const vals = list.map((x) => x.v).filter((v) => v > 0);
+  const med = vals.length ? vals[Math.floor(vals.length / 2)] : 0;
+  const head = '<div style="margin-bottom:6px">기록 있는 사람 <b>' + vals.length + "</b>명 · 1등 <b>" + (vals[0] || 0) + "</b> · 중간쯤 <b>" + med + "</b>" +
+    (n ? ' · <span style="color:#e0457b">' + n + " 이상: <b>" + vals.filter((v) => v >= n).length + "명</b></span>" : "") + "</div>";
+  $("rec_out").innerHTML = head + '<div style="max-height:46vh;overflow:auto">' + list.map((x, i) => '<div style="display:flex;gap:6px;padding:2px 0;border-bottom:1px solid #eee;' + (n && x.v >= n ? "background:#fff0f5" : "") + '"><span style="width:22px;color:#7a8db3">' + (i + 1) + '</span><b style="flex:1">' + x.nick + ' <small style="color:#c98a1b">' + (x.badge ? "「" + x.badge + "」" : "") + '</small></b><span>' + x.v + "</span></div>").join("") + "</div>";
+}
+
 // ----- 👀 친구들 현황 (보기만) -----
 async function openUsers() {
-  $("opsTitle").textContent = "👀 친구들 현황"; $("opsHelp").textContent = "게임에 닉네임을 정한 사람들이에요 (보기만 해요). 마지막 접속 순.";
+  $("opsTitle").textContent = "👀 친구들 현황 · 📊 기록 보기"; $("opsHelp").textContent = "게임에 닉네임을 정한 사람들이에요 (보기만 해요). 마지막 접속 순. 왼쪽 📊 기록 보기에서 기록을 고르면 순위가 나오고, 칭호 기준 숫자를 넣으면 몇 명이 받는지 바로 보여요.";
   $("opsBtns").classList.add("hide"); $("opsNew").classList.add("hide"); $("opsForm").innerHTML = "";
   try {
     let plazaLine = "";
@@ -779,7 +822,8 @@ async function openUsers() {
       plazaLine = "🏛 지금 광장에 " + live.length + "명" + (live.length ? " (" + Object.keys(byCh).sort().map((c) => c + "채널 " + byCh[c] + "명").join(" · ") + ") · " + live.map((v) => v.nick).join(", ") : ""); } catch (e) { plazaLine = "🏛 광장 인원을 못 불러왔어요 (Firebase 규칙에 plaza가 있는지 확인)"; }
     const s = await db.collection("users").get();
     const rows = s.docs.map((d) => d.data()).filter((u) => u.nick && !u.moved).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-    $("opsList").innerHTML = '<div class="note">' + rows.length + "명</div>" + '<div class="note" style="font-weight:700;color:#2f9e6e">' + plazaLine + "</div>";
+    $("opsList").innerHTML = '<div class="note">' + rows.length + "명</div>" + '<div class="note" style="font-weight:700;color:#2f9e6e">' + plazaLine + "</div>" + recToolHtml();
+    recRows = rows; recRender();
     $("opsForm").innerHTML = '<table style="width:100%;font-size:13px;border-collapse:collapse">' +
       "<tr style=\"text-align:left;border-bottom:2px solid #b8c4d8\"><th>닉네임</th><th>칭호</th><th>키</th><th>세대</th><th>비밀</th><th>코드</th><th>마지막 접속</th></tr>" +
       rows.map((u) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + u.nick + "</b></td><td>" + (u.badge || "") + "</td><td>" + (u.heightCm ? (Math.round(u.heightCm * 10) / 10) + "cm" : "") + "</td><td>" + ((u.gen && u.gen.no) || 1) + "대</td><td>" + (u.secrets || 0) + "</td><td>" + (u.code || "") + "</td><td>" + (u.updatedAt ? new Date(u.updatedAt).toLocaleString() : "") + "</td></tr>").join("") + "</table>";
