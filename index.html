@@ -724,7 +724,7 @@ function plazaSchedRead() {
 // ----- 🤝 광장 공동 목표 (같은 문서 merchantConfig/main 의 goal) -----
 const GOAL_K = { anchovy: ["🐟 바다 친구 잡기 (멸치잡기)", 3000], dance: ["💃 광장 춤", 300], stairs: ["🪜 쑥쑥계단 칸", 10000], jobs: ["💼 알바 횟수", 60], word: ["🔤 끝말잇기 이은 단어", 2000], dig: ["⛏ 땅 파기", 300], flower: ["💐 꽃 선물", 60] };
 const GOAL_ORD = ["anchovy", "dance", "stairs", "jobs", "word", "dig", "flower"];
-function goalWeekKey() { const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)); return mon.getFullYear() + "-" + (mon.getMonth() + 1) + "-" + mon.getDate(); }
+function goalWeekKey() { const d = new Date(Date.now() + (540 + new Date().getTimezoneOffset()) * 60000), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)); return mon.getFullYear() + "-" + (mon.getMonth() + 1) + "-" + mon.getDate(); }
 function goalAutoKind() { const wn = Math.floor(new Date(goalWeekKey().replace(/-/g, "/")).getTime() / (7 * 86400000)); return GOAL_ORD[((wn % 7) + 7) % 7]; }
 function goalForm(g) {
   return '<h3 style="margin:22px 0 4px">🤝 광장 공동 목표</h3><div class="note">매주 월요일에 자동으로 바뀌어요 (이번 주 자동: ' + GOAL_K[goalAutoKind()][0] + ' ' + GOAL_K[goalAutoKind()][1] + '). 바꾸고 싶을 때만 골라요. 달성하면 이번 주에 보탠 사람 모두 100코인 + 씨앗 2.</div>' +
