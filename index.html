@@ -192,7 +192,7 @@ function say(t, ok) { $("msg").textContent = t; $("msg").style.color = ok ? "#2f
     await loadScript(fb + "firebase-firestore-compat.js");
     for (const f of ["sprites.js", "item-art.js", "items.js", "room-art.js", "data/liar.js"]) await loadScript(GAME_URL + "js/" + f);
     // 선물 · 상인 · 발굴 옷 · ✈️ 여행 기념품도 보이게 (못 받아도 괜찮아요)
-    for (const f of ["nail-art.js", "gen2.js", "gameseeds.js", "faideco.js", "yard.js", "merchant.js", "merchant-items.js", "merchant-req.js", "kuji.js", "travel-art.js", "xmas.js", "xmas2.js"]) { try { await loadScript(GAME_URL + "js/" + f); } catch (e) { /* 괜찮아요 */ } }
+    for (const f of ["nail-art.js", "gen2.js", "gameseeds.js", "faideco.js", "yard.js", "merchant.js", "merchant-items.js", "merchant-req.js", "kuji.js", "travel-art.js", "xmas.js", "xmas2.js", "veteran.js", "bond.js"]) { try { await loadScript(GAME_URL + "js/" + f); } catch (e) { /* 괜찮아요 */ } }
   } catch (e) { $("empty").textContent = "필요한 파일을 못 받았어요: " + e.message; return; }
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth(); db = firebase.firestore();
@@ -510,7 +510,7 @@ $("delBtn").onclick = async () => {
 <script>
 // ================= 운영 메뉴 (칭호 · 소식 · 쿠폰 · 이벤트 · 단어 · 라이어 · 출석 · 현황) =================
 const STATS = {
-  wordWin1: "끝말잇기 · 아기 하이 이긴 횟수", wordWin2: "끝말잇기 · 똑똑 하이 이긴 횟수", wordWin3: "끝말잇기 · 박사 하이 이긴 횟수", wordChain: "끝말잇기 · 한 판 최고 이어간 단어",
+  wordWin1: "끝말잇기 · 아기 하이 이긴 횟수", wordWin2: "끝말잇기 · 똑똑 하이 이긴 횟수", wordWin3: "끝말잇기 · 박사 하이 이긴 횟수", midWin1: "가운데 잇기 · 아기 하이 이긴 횟수", midWin2: "가운데 잇기 · 똑똑 하이 이긴 횟수", midWin3: "가운데 잇기 · 박사 하이 이긴 횟수", midChain: "가운데 잇기 · 한 판 최고 이어간 단어", wordChain: "끝말잇기 · 한 판 최고 이어간 단어",
   woWins: "놀이방 · 끝말잇기 1등 횟수", liarWins: "놀이방 · 라이어 승리 횟수", mafiaWins: "놀이방 · 마피아 승리 횟수", playroomGames: "놀이방 · 라이어+마피아 판 수",
   anchovyBest: "멸치잡기 · 최고 점수", growrunBest: "쑥쑥런 · 최고 점수", stairsBest: "쑥쑥계단 · 최고 계단",
   play_anchovy: "멸치잡기 · 플레이 횟수", play_beat: "쑥쑥비트 · 플레이 횟수", play_growrun: "쑥쑥런 · 플레이 횟수", play_stairs: "쑥쑥계단 · 플레이 횟수", play_word: "끝말잇기(하이랑) · 플레이 횟수",
@@ -702,7 +702,7 @@ function merchantForm(d) {
     "<label>💰 오늘 찾는 물건 (한 줄에 하나: id 가격 · 비워 두면 매일 자동으로 3개, 평소 값의 3배)</label>" + TA("m_wants", m.wants, 3) +
     "<label>🔄 바꿔요 (한 줄에 하나: 재료id*개수 + 재료id*개수 > 받을 아이템id · 몇 줄이든 · 게임에선 4개씩 넘겨 봐요)</label>" + TA("m_trades", m.trades, 10) +
     "<label>🛍 팔아요 (한 줄에 하나: 아이템id 가격) · 이 중에서 매일 골라서 진열</label>" + TA("m_sells", m.sells, 10) +
-    '<label>하루에 진열할 개수 (최대 4)</label><input type="number" id="m_sellCount" value="' + m.sellCount + '">' + plazaSchedForm(d.plaza || {}) + goalForm(d.goal || {});
+    '<label>하루에 진열할 개수 (최대 4)</label><input type="number" id="m_sellCount" value="' + m.sellCount + '">' + plazaSchedForm(d.plaza || {}) + goalForm(d.goal || {}) + vetForm(d.vet || {});
   goalShowNow();
 }
 // ----- 🏛 광장 시간표 (같은 문서 merchantConfig/main 의 plaza 에 저장) -----
@@ -739,11 +739,23 @@ async function goalShowNow() {
     $("g_now").innerHTML = d ? "<b>이번 주 (" + goalWeekKey() + "~) " + (GOAL_K[d.kind] || [d.kind])[0] + ": " + (d.total || 0) + " / " + (d.target || "?") + "</b><br>" + top.map((x) => x.nick + " " + x.n).join(" · ") : "이번 주엔 아직 아무도 안 보탰어요";
   } catch (e) { $("g_now").textContent = "진행 상황을 못 불러왔어요: " + (e.code || e.message); }
 }
+// ----- 👑 고인물 세트 조건 (같은 문서 merchantConfig/main 의 vet) · 게임 js/veteran.js 와 이름을 맞춰요 -----
+const VET_ADM = [
+  ["🐟 멸치 그랜드마스터 (멸치 최고 점수)", [["vtFishCap", "선장 모자", 300], ["vtGoggles", "잠수 고글", 350], ["vtScaleCape", "비늘 망토", 400], ["vtGoldNet", "황금 뜰채", 450]]],
+  ["📜 끝말 대현자 (한 판 단어 · 도포는 박사 하이 승)", [["vtGat", "갓", 50], ["vtBeard", "수염", 100], ["vtDopo", "도포 (박사 하이 승)", 200], ["vtBrush", "붓", 300]]],
+  ["🌌 우주 끝 등반가 (계단 최고 칸)", [["vtHalo", "헤일로", 700], ["vtVisor", "바이저", 1000], ["vtGalaxyCape", "은하수 망토", 2200], ["vtStarFlag", "깃발", 3000]]],
+  ["🗝 비밀의 수호자 (찾은 비밀 수)", [["vtHood", "후드", 10], ["vtMask", "가면", 20], ["vtKeyRing", "열쇠 목걸이", 35], ["vtLantern", "등불", 47]]],
+];
+function vetForm(v) {
+  return '<h3 style="margin:22px 0 4px">👑 고인물 세트 조건</h3><div class="note">기록이 이 숫자를 넘으면 그 부위가 저절로 들어와요. 비워 두면 기본값. 이미 받은 사람은 그대로예요 (📊 기록 보기로 몇 명이 받을지 확인해 보세요).</div>' +
+    VET_ADM.map(([nm, rows]) => '<label>' + nm + '</label><div style="display:flex;gap:6px">' + rows.map(([id, n, d]) => '<div style="flex:1"><small>' + n + '</small><input type="number" id="vet_' + id + '" placeholder="' + d + '" value="' + (v[id] || "") + '"></div>').join("") + "</div>").join("");
+}
+function vetRead() { const o = {}; VET_ADM.forEach(([, rows]) => rows.forEach(([id]) => { const n = +$("vet_" + id).value; if (n > 0) o[id] = n; })); return o; }
 function merchantRead() {
   return { days: [0, 1, 2, 3, 4, 5, 6].filter((i) => $("md_" + i).checked), start: $("m_start").value || "14:00", end: $("m_end").value || "16:30",
     stampGoal: +$("m_goal").value || 10, sellCount: Math.min(4, +$("m_sellCount").value || 3),
     wants: $("m_wants").value.trim(), trades: $("m_trades").value.trim(), sells: $("m_sells").value.trim(), plaza: plazaSchedRead(),
-    goal: { kind: $("g_kind").value, target: +$("g_target").value || 0 }, updatedAt: Date.now() };
+    goal: { kind: $("g_kind").value, target: +$("g_target").value || 0 }, vet: vetRead(), updatedAt: Date.now() };
 }
 
 // ----- 🎟 쿠지 (wordRooms/kuji-box 하나를 모두가 같이 뽑아요) -----
@@ -791,7 +803,7 @@ async function openKuji() {
 
 // ----- 📊 기록 보기 (칭호 숫자 정할 때) · 게임이 users 문서의 rec 에 올려요 -----
 let recRows = [];
-const REC_EXTRA = { stairsSteps: "쑥쑥계단 · 실제로 오른 최고 칸", titles: "하이 · 모은 칭호 수", goalWins: "광장 · 공동 목표 달성 주", favors: "마당 · 너구리 부탁 들어준 횟수", trvStamps: "✈️ 세계여행 · 여권 도장 수", trvLaps: "✈️ 세계여행 · 바퀴 수", trvPc: "✈️ 세계여행 · 보낸 엽서" };
+const REC_EXTRA = { stairsSteps: "쑥쑥계단 · 실제로 오른 최고 칸", titles: "하이 · 모은 칭호 수", goalWins: "광장 · 공동 목표 달성 주", favors: "마당 · 너구리 부탁 들어준 횟수", thx: "💛 고마움 포인트", trvStamps: "✈️ 세계여행 · 여권 도장 수", trvLaps: "✈️ 세계여행 · 바퀴 수", trvPc: "✈️ 세계여행 · 보낸 엽서" };
 const recLabel = (k) => STATS[k] || REC_EXTRA[k] || k;
 function recToolHtml() {
   const keys = Object.keys(STATS).concat(Object.keys(REC_EXTRA));
