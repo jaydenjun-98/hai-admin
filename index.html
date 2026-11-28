@@ -191,8 +191,8 @@ function say(t, ok) { $("msg").textContent = t; $("msg").style.color = ok ? "#2f
     await loadScript(fb + "firebase-auth-compat.js");
     await loadScript(fb + "firebase-firestore-compat.js");
     for (const f of ["sprites.js", "item-art.js", "items.js", "room-art.js", "data/liar.js"]) await loadScript(GAME_URL + "js/" + f);
-    // 선물 · 상인 · 발굴 옷도 보이게 (못 받아도 괜찮아요)
-    for (const f of ["nail-art.js", "gen2.js", "gameseeds.js", "faideco.js", "yard.js", "merchant.js", "merchant-items.js"]) { try { await loadScript(GAME_URL + "js/" + f); } catch (e) { /* 괜찮아요 */ } }
+    // 선물 · 상인 · 발굴 옷 · ✈️ 여행 기념품도 보이게 (못 받아도 괜찮아요)
+    for (const f of ["nail-art.js", "gen2.js", "gameseeds.js", "faideco.js", "yard.js", "merchant.js", "merchant-items.js", "merchant-req.js", "kuji.js", "travel-art.js", "xmas.js", "xmas2.js"]) { try { await loadScript(GAME_URL + "js/" + f); } catch (e) { /* 괜찮아요 */ } }
   } catch (e) { $("empty").textContent = "필요한 파일을 못 받았어요: " + e.message; return; }
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth(); db = firebase.firestore();
@@ -263,7 +263,7 @@ document.querySelectorAll(".tab").forEach((b) => (b.onclick = () => {
 }));
 $("search").oninput = renderList;
 const isWearSlot = (slot) => !!(SLOTS[slot] && SLOTS[slot].wear);
-function baseItems() { return (typeof ITEMS !== "undefined" ? ITEMS : []).filter((it) => !it.custom && it.slot !== "consumable" && (it.price > 0 || (isWearSlot(it.slot) && typeof ITEM_SPRITES !== "undefined" && ITEM_SPRITES[it.id]))); }
+function baseItems() { return (typeof ITEMS !== "undefined" ? ITEMS : []).filter((it) => !it.custom && it.slot !== "consumable" && (it.price > 0 || it.travel || it.xmas || (isWearSlot(it.slot) && typeof ITEM_SPRITES !== "undefined" && ITEM_SPRITES[it.id]))); }
 function origSpr(id) { const sp = typeof ITEM_SPRITES !== "undefined" && ITEM_SPRITES[id]; return sp ? { x: sp.x || 0, y: sp.y || 0, img: sp.img || (sp.frames && sp.frames[0].img) } : null; }
 function renderList() {
   const q = $("search").value.trim();
@@ -281,7 +281,7 @@ function renderList() {
     const st = r.kind === "custom" ? (d.hidden ? '<span class="st s-off">숨김</span>' : d.releaseAt > Date.now() ? '<span class="st s-ovr">🗓 ' + fmtRelease(d.releaseAt) + ' 공개</span>' : '<span class="st s-on">판매 중</span>') : (o ? '<span class="st s-ovr">수정됨</span>' : "");
     const g = (d.gen || 1) > 1 ? " · " + d.gen + "대부터" : "";
     return '<div class="row' + (sel && sel.id === r.id ? " sel" : "") + '" data-i="' + i + '"><canvas width="40" height="40"></canvas><div class="meta"><b>' + (d.name || "(이름 없음)") +
-      "</b><small>" + (r.kind === "base" && !(r.d.price > 0) ? "🎁 선물·상인 · " : "") + "💰" + (d.price || 0) + " · 📏" + HEIGHT_STEPS[d.level || 1] + "cm" + g + (d.hidden && r.kind === "base" ? " · 숨김" : "") + "</small></div>" + st + "</div>";
+      "</b><small>" + (r.kind === "base" && r.d.xmas ? "🎄 어드벤트 선물 · " : r.kind === "base" && r.d.travel ? "✈️ 여행 기념품" + (typeof TRV_SOUV_BY !== "undefined" && TRV_SOUV_BY[r.id] ? " (여행에서 " + TRV_SOUV_BY[r.id].price + "코인)" : " (선물 전용)") + " · " : r.kind === "base" && !(r.d.price > 0) ? "🎁 선물·상인 · " : "") + "💰" + (d.price || 0) + " · 📏" + HEIGHT_STEPS[d.level || 1] + "cm" + g + (d.hidden && r.kind === "base" ? " · 숨김" : "") + "</small></div>" + st + "</div>";
   }).join("") || '<div class="note">아직 없어요</div>';
   [...$("list").children].forEach((el) => {
     const r = rows[+el.dataset.i]; if (!r) return;
@@ -529,8 +529,8 @@ const SECS = {
     fields: [["title", "제목", "text"], ["body", "내용 (한 줄에 하나씩)", "lines"]],
     label: (d) => d.title || "(제목 없음)", sub: (d) => (d.at ? new Date(d.at).toLocaleDateString() : "") },
   coupons: { coll: "coupons", name: "🎫 쿠폰 코드", help: "게임 설정 → 🎫 쿠폰에서 코드를 넣으면 받아요. 한 사람당 1번만. 기간을 비워 두면 언제든. '받을 사람'에 닉네임을 쓰면 그 친구들만 받을 수 있어요 (👀 친구들 현황의 닉네임 그대로).", idField: "code",
-    fields: [["code", "쿠폰 코드 (영문 · 숫자)", "code"], ["who", "🙋 받을 사람 닉네임 (여러 명은 쉼표로 · 비우면 누구나)", "text"], ["kuji", "🎟 쿠지 뽑기권 (장 · 공짜로 뽑고 하루 5번에 안 들어가요)", "number"], ["coins", "코인", "number"], ["shouts", "확성기 개수", "number"], ["item", "아이템 (선택)", "item"], ["item2", "아이템 2 (선택)", "item"], ["item3", "아이템 3 (선택)", "item"], ["start", "시작일", "date"], ["end", "끝나는 날", "dateEnd"]],
-    label: (d, id) => id, sub: (d) => [d.who ? "🙋 " + d.who : "", d.kuji ? "🎟 뽑기권 " + d.kuji : "", d.coins ? "코인 " + d.coins : "", d.shouts ? "확성기 " + d.shouts : "", [d.item, d.item2, d.item3].filter(Boolean).length ? "아이템 " + [d.item, d.item2, d.item3].filter(Boolean).map(itemName).join(" · ") : "", d.end ? "~" + toDate(d.end) : ""].filter(Boolean).join(" · ") },
+    fields: [["code", "쿠폰 코드 (영문 · 숫자)", "code"], ["who", "🙋 받을 사람 닉네임 (여러 명은 쉼표로 · 비우면 누구나)", "text"], ["kuji", "🎟 쿠지 뽑기권 (장 · 공짜로 뽑고 하루 5번에 안 들어가요)", "number"], ["title", "🏅 칭호 (선택 · 예: 라스트원)", "text"], ["coins", "코인", "number"], ["shouts", "확성기 개수", "number"], ["item", "아이템 (선택)", "item"], ["item2", "아이템 2 (선택)", "item"], ["item3", "아이템 3 (선택)", "item"], ["start", "시작일", "date"], ["end", "끝나는 날", "dateEnd"]],
+    label: (d, id) => id, sub: (d) => [d.who ? "🙋 " + d.who : "", d.title ? "🏅 " + d.title : "", d.kuji ? "🎟 뽑기권 " + d.kuji : "", d.coins ? "코인 " + d.coins : "", d.shouts ? "확성기 " + d.shouts : "", [d.item, d.item2, d.item3].filter(Boolean).length ? "아이템 " + [d.item, d.item2, d.item3].filter(Boolean).map(itemName).join(" · ") : "", d.end ? "~" + toDate(d.end) : ""].filter(Boolean).join(" · ") },
   events: { coll: "events", name: "🎉 이벤트", help: "기간 동안 게임에 적용돼요. 코인 배율은 미니게임 보상에, 키 배율은 키가 크는 모든 곳에, 세일은 상점 가격에. 1 = 그대로.",
     fields: [["name", "이벤트 이름", "text"], ["start", "시작일", "date"], ["end", "끝나는 날", "dateEnd"], ["coinX", "미니게임 코인 배율 (예: 2)", "number"], ["growX", "키 성장 배율 (예: 1.5)", "number"], ["sale", "상점 세일 % (예: 20)", "number"]],
     label: (d) => d.name || "(이름 없음)", sub: (d) => toDate(d.start) + " ~ " + toDate(d.end) + (d.coinX > 1 ? " · 코인×" + d.coinX : "") + (d.growX > 1 ? " · 키×" + d.growX : "") + (d.sale ? " · " + d.sale + "% 세일" : "") },
@@ -604,7 +604,7 @@ function fieldHtml(f, v) {
 // 세트에 넣을 수 있는 아이템: 관리자가 만든 것 + 게임에 원래 있는 것
 function setItemChoices() {
   const out = Object.keys(custom || {}).filter((id) => !custom[id].deleted).map((id) => ({ id, name: custom[id].name || id, tag: "✨ 새로 만든" }));
-  for (const it of (typeof ITEMS !== "undefined" ? ITEMS : [])) if (!it.custom && it.slot !== "consumable" && !out.find((o) => o.id === it.id)) out.push({ id: it.id, name: it.name, tag: it.price > 0 ? "상점" : "선물·상인" });
+  for (const it of (typeof ITEMS !== "undefined" ? ITEMS : [])) if (!it.custom && it.slot !== "consumable" && !out.find((o) => o.id === it.id)) out.push({ id: it.id, name: it.name, tag: it.travel ? "✈️ 여행" : it.xmas ? "🎄 어드벤트" : it.price > 0 ? "상점" : "선물·상인" });
   return out;
 }
 function fillOps(d, id) {
@@ -748,7 +748,7 @@ function merchantRead() {
 
 // ----- 🎟 쿠지 (wordRooms/kuji-box 하나를 모두가 같이 뽑아요) -----
 // 시리즈는 게임 js/kuji.js 의 KUJI_SERIES 와 이름을 맞춰요
-const KUJI_N = { A: 1, B: 2, C: 3, D: 6, E: 14, F: 24 };
+const ADM_KUJI_N = { A: 1, B: 2, C: 3, D: 6, E: 14, F: 24 };
 const KUJI_SER = {
   fai: { theme: "🌱 파이의 방", nm: { A: "왕 파이 인형", B: "파이 벽지", C: "파이 얼굴 러그", D: "파이 쿠션 · 액자", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" }, last: "파이 인형옷" },
   raccoon: { theme: "🦝 너구리의 보따리", nm: { A: "왕 너구리 인형", B: "너구리 벽지", C: "너구리 꼬리 러그", D: "너구리 쿠션 · 보따리", E: "스티커 · 씨앗 · 확성기", F: "뱃지 · 우유 · 간식 쿠폰" }, last: "너구리 인형옷" },
@@ -772,7 +772,7 @@ async function openKuji() {
     (hist.slice().reverse().map((h) => '<div style="font-size:12px;margin-top:6px"><b>' + h.no + "탄 · " + h.theme + "</b><br><span style=\"color:#5a6a8a\">" + kujiMD(h.openedAt) + " ~ " + (h.soldAt ? kujiMD(h.soldAt) + " 매진" : h.drawn + "/" + h.total + "장에서 끝") +
       (h.lastBy ? " · 🏆 " + h.lastBy : "") + ((h.top || []).length ? "<br>" + h.top.map((t) => t.g + "상 " + t.nick).join(" · ") : "") + "</span></div>").join("") || '<div class="note">아직 없어요</div>') + "</div>";
   const serKeys = Object.keys(KUJI_SER), nextSer = b ? serKeys[(serKeys.indexOf(b.series || "fai") + 1) % serKeys.length] : "fai"; // 지금 다음 버전을 골라 둬요
-  $("opsForm").innerHTML = (b ? '<table style="width:100%;font-size:13px;border-collapse:collapse">' + Object.keys(KUJI_N).map((g) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + g + "상</b></td><td>" + S.nm[g] + "</td><td style=\"text-align:right\">" + ((b.left || {})[g] || 0) + " / " + KUJI_N[g] + "</td></tr>").join("") + "</table>" +
+  $("opsForm").innerHTML = (b ? '<table style="width:100%;font-size:13px;border-collapse:collapse">' + Object.keys(ADM_KUJI_N).map((g) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + g + "상</b></td><td>" + S.nm[g] + "</td><td style=\"text-align:right\">" + ((b.left || {})[g] || 0) + " / " + ADM_KUJI_N[g] + "</td></tr>").join("") + "</table>" +
     '<label>최근 뽑은 사람</label><div class="note">' + ((b.log || []).slice().reverse().map((l) => l.nick + " · " + (l.last ? "🏆 라스트원" : l.g + "상") + " · " + new Date(l.at).toLocaleString()).join("<br>") || "없어요") + "</div>" : "") +
     '<h3 style="margin:22px 0 4px">🎟 새 상자 열기</h3><label>어떤 버전으로 열까요?</label><select id="kujiSer">' +
     Object.keys(KUJI_SER).map((k) => '<option value="' + k + '"' + (k === nextSer ? " selected" : "") + ">" + KUJI_SER[k].theme + " (A " + KUJI_SER[k].nm.A + " · 라스트원 " + KUJI_SER[k].last + ")</option>").join("") + "</select>" +
@@ -782,7 +782,7 @@ async function openKuji() {
     if (!user) return om("구글로 로그인해 주세요");
     if (b && left > 0 && !confirm("아직 " + left + "장 남았어요. 그래도 새 상자를 열까요?")) return;
     const ser = $("kujiSer").value, T = KUJI_SER[ser], no = ((b && b.no) || 0) + 1;
-    const nb = { kind: "kuji", host: user.uid, no, series: ser, theme: T.theme, left: Object.assign({}, KUJI_N), total: 50, drawn: 0, lastBy: null, log: [], top: [],
+    const nb = { kind: "kuji", host: user.uid, no, series: ser, theme: T.theme, left: Object.assign({}, ADM_KUJI_N), total: 50, drawn: 0, lastBy: null, log: [], top: [],
       history: b ? hist.concat([kujiSummary(b)]).slice(-30) : [],
       news: { text: "🎟 쿠지 " + no + "탄 「" + T.theme + "」 상자가 열렸어요! 광장으로 고고!", at: Date.now() }, openedAt: Date.now() };
     try { await db.collection("wordRooms").doc("kuji-box").set(nb); om("새 상자를 열었어요! 🎉", true); openKuji(); } catch (e) { om("안 됐어요: " + (e.code || e.message)); }
@@ -791,7 +791,7 @@ async function openKuji() {
 
 // ----- 📊 기록 보기 (칭호 숫자 정할 때) · 게임이 users 문서의 rec 에 올려요 -----
 let recRows = [];
-const REC_EXTRA = { stairsSteps: "쑥쑥계단 · 실제로 오른 최고 칸", titles: "하이 · 모은 칭호 수", goalWins: "광장 · 공동 목표 달성 주", favors: "마당 · 너구리 부탁 들어준 횟수" };
+const REC_EXTRA = { stairsSteps: "쑥쑥계단 · 실제로 오른 최고 칸", titles: "하이 · 모은 칭호 수", goalWins: "광장 · 공동 목표 달성 주", favors: "마당 · 너구리 부탁 들어준 횟수", trvStamps: "✈️ 세계여행 · 여권 도장 수", trvLaps: "✈️ 세계여행 · 바퀴 수", trvPc: "✈️ 세계여행 · 보낸 엽서" };
 const recLabel = (k) => STATS[k] || REC_EXTRA[k] || k;
 function recToolHtml() {
   const keys = Object.keys(STATS).concat(Object.keys(REC_EXTRA));
@@ -812,6 +812,24 @@ function recRender() {
   $("rec_out").innerHTML = head + '<div style="max-height:46vh;overflow:auto">' + list.map((x, i) => '<div style="display:flex;gap:6px;padding:2px 0;border-bottom:1px solid #eee;' + (n && x.v >= n ? "background:#fff0f5" : "") + '"><span style="width:22px;color:#7a8db3">' + (i + 1) + '</span><b style="flex:1">' + x.nick + ' <small style="color:#c98a1b">' + (x.badge ? "「" + x.badge + "」" : "") + '</small></b><span>' + x.v + "</span></div>").join("") + "</div>";
 }
 
+// ----- ✈️ 하이의 세계여행 (보기만) · 게임 travel-art.js 의 TRV_CITY 를 같이 써요 -----
+const TRV_ADM_TIERS = [[5, "하이캄 회원"], [15, "하이캄 골드"], [30, "하이캄 프리미엄"], [50, "하이캄 밀리언 마일러"]];
+function trvAdminTier(n) { let t = ""; for (const r of TRV_ADM_TIERS) if (n >= r[0]) t = r[1]; return t; }
+function trvAdminCell(u) { const r = u.rec || {}; if (r.trvStamps === undefined && !r.trvLaps) return ""; return "🛂" + (r.trvStamps || 0) + "/12 · " + (r.trvLaps || 0) + "바퀴" + (trvAdminTier(r.trvLaps || 0) ? " <small style=\"color:#c98a1b\">" + trvAdminTier(r.trvLaps || 0) + "</small>" : "") + (r.trvPc ? " · 💌" + r.trvPc : ""); }
+async function trvAdminBox(rows) {
+  const box = $("trvBox"); if (!box) return;
+  const travelers = rows.filter((u) => u.rec && (u.rec.trvStamps !== undefined || u.rec.trvLaps));
+  let html = "<b>✈️ 세계여행</b> · 여권 만든 사람 " + travelers.length + "명";
+  try {
+    const wk = goalWeekKey(), s = await db.collection("wordRooms").doc("travel-" + wk).get(), d = s.exists ? s.data() : {};
+    const C = typeof TRV_CITY !== "undefined" ? TRV_CITY : {};
+    const lines = Object.keys(C).map((id) => { const m = (d.cities || {})[id] || {}; let best = null; for (const uid in m) if (m[uid] && m[uid].n > 0 && (!best || m[uid].n > best.n)) best = m[uid]; return C[id].icon + " " + C[id].name + ": " + (best ? "<b>" + best.nick + "</b> " + best.n + "점" : "-"); });
+    const inc = Object.values(d.income || {}).reduce((a, b) => a + (+b || 0), 0);
+    html += "<br>🏅 이번 주 (" + wk + "~) 명예 주민<br>" + lines.join(" · ") + (inc ? "<br>관광 수입 총 " + inc + "코인" : "");
+  } catch (e) { html += "<br>명예 주민을 못 불러왔어요: " + (e.code || e.message); }
+  box.innerHTML = html;
+}
+
 // ----- 👀 친구들 현황 (보기만) -----
 async function openUsers() {
   $("opsTitle").textContent = "👀 친구들 현황 · 📊 기록 보기"; $("opsHelp").textContent = "게임에 닉네임을 정한 사람들이에요 (보기만 해요). 마지막 접속 순. 왼쪽 📊 기록 보기에서 기록을 고르면 순위가 나오고, 칭호 기준 숫자를 넣으면 몇 명이 받는지 바로 보여요.";
@@ -822,11 +840,11 @@ async function openUsers() {
       plazaLine = "🏛 지금 광장에 " + live.length + "명" + (live.length ? " (" + Object.keys(byCh).sort().map((c) => c + "채널 " + byCh[c] + "명").join(" · ") + ") · " + live.map((v) => v.nick).join(", ") : ""); } catch (e) { plazaLine = "🏛 광장 인원을 못 불러왔어요 (Firebase 규칙에 plaza가 있는지 확인)"; }
     const s = await db.collection("users").get();
     const rows = s.docs.map((d) => d.data()).filter((u) => u.nick && !u.moved).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-    $("opsList").innerHTML = '<div class="note">' + rows.length + "명</div>" + '<div class="note" style="font-weight:700;color:#2f9e6e">' + plazaLine + "</div>" + recToolHtml();
-    recRows = rows; recRender();
+    $("opsList").innerHTML = '<div class="note">' + rows.length + "명</div>" + '<div class="note" style="font-weight:700;color:#2f9e6e">' + plazaLine + "</div>" + '<div id="trvBox" class="note">✈️ 세계여행 불러오는 중…</div>' + recToolHtml();
+    recRows = rows; recRender(); trvAdminBox(rows);
     $("opsForm").innerHTML = '<table style="width:100%;font-size:13px;border-collapse:collapse">' +
-      "<tr style=\"text-align:left;border-bottom:2px solid #b8c4d8\"><th>닉네임</th><th>칭호</th><th>키</th><th>세대</th><th>비밀</th><th>코드</th><th>마지막 접속</th></tr>" +
-      rows.map((u) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + u.nick + "</b></td><td>" + (u.badge || "") + "</td><td>" + (u.heightCm ? (Math.round(u.heightCm * 10) / 10) + "cm" : "") + "</td><td>" + ((u.gen && u.gen.no) || 1) + "대</td><td>" + (u.secrets || 0) + "</td><td>" + (u.code || "") + "</td><td>" + (u.updatedAt ? new Date(u.updatedAt).toLocaleString() : "") + "</td></tr>").join("") + "</table>";
+      "<tr style=\"text-align:left;border-bottom:2px solid #b8c4d8\"><th>닉네임</th><th>칭호</th><th>키</th><th>세대</th><th>비밀</th><th>✈️ 여행</th><th>코드</th><th>마지막 접속</th></tr>" +
+      rows.map((u) => "<tr style=\"border-bottom:1px solid #eee\"><td><b>" + u.nick + "</b></td><td>" + (u.badge || "") + "</td><td>" + (u.heightCm ? (Math.round(u.heightCm * 10) / 10) + "cm" : "") + "</td><td>" + ((u.gen && u.gen.no) || 1) + "대</td><td>" + (u.secrets || 0) + "</td><td>" + trvAdminCell(u) + "</td><td>" + (u.code || "") + "</td><td>" + (u.updatedAt ? new Date(u.updatedAt).toLocaleString() : "") + "</td></tr>").join("") + "</table>";
   } catch (e) { $("opsForm").textContent = "못 불러왔어요: " + (e.code || e.message); }
 }
 </script>
